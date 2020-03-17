@@ -73,7 +73,7 @@ Function Generate_Token {
 
     $uri = 'https://login.microsoftonline.com/36da45f1-dd2c-4d1f-af13-5abe46b99921/oauth2/token'
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $tokenReq = Invoke-WebRequest -Uri $uri -Method Post -Body $jsonobj -ContentType $contentType
+    $tokenreq = Invoke-WebRequest -Uri $uri -Method Post -Body $jsonobj -ContentType $contentType -UseBasicParsing
     $Gettoken = $tokenreq.content | Convertfrom-json
     $token = $Gettoken.access_token
     return $token
