@@ -1,8 +1,10 @@
+#using existing vnet
 data "azurerm_virtual_network" "del_vnet" {
   name                = "${var.vnet_name}"
   resource_group_name = "${var.vnet_resource_group}"
 }
 
+#using existing subnets
 data "azurerm_subnet" "del_subnet" {
 
   name                 = "${data.azurerm_virtual_network.del_vnet.subnets[0]}"
@@ -11,6 +13,7 @@ data "azurerm_subnet" "del_subnet" {
 
 }
 
+#creating load balancer
 resource "azurerm_lb" "del_lb" {
   name                = "${var.prefix}-lb"
   location            = "${var.location}"
@@ -93,7 +96,7 @@ resource "null_resource" "test-api1" {
      "AccountID":  "${var.subscription_id}",
      "ResourceLocation":  "${var.resource_group}",
      "Domain":  "${var.Domain}",
-     "ResourceIdentifier":  "${azurerm_virtual_machine.del_virtual_machine[count.index].name}",
+     "ResourceIdentifier":  "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}",
      "Environment":  "${var.Environment_puppet}",
      "Provider":  "${var.Provider_name}",
      "OperatingSystem":  "${var.OperatingSystem}"
