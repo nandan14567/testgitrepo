@@ -64,7 +64,7 @@ variable "lb_port" {
   #    https = ["443", "Tcp", "443"]
   #  }
 }
-variable "Domain" {
+variable "domain" {
 
 }
 variable "environment_puppet" {
