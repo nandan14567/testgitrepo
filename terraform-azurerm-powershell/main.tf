@@ -1,4 +1,3 @@
-#Creating security group for ec2 instances
 provider "azurerm" {
   tenant_id                  = "${var.tenant_id}"
   subscription_id            = "${var.subscription_id}"
