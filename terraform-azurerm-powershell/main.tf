@@ -27,7 +27,6 @@ module "terraform-azurerm-powershell" {
 
   admin_username          = "${var.admin_username}"
   admin_password          = "${var.admin_password}"
-  vmname_prefix           = "${var.vmname_prefix}"
   vnet_id                 = "${var.vnet_id}"
   lb_private_ipaddress    = "${var.lb_private_ipaddress}"
   avset_updatedomaincount = "${var.avset_updatedomaincount}"

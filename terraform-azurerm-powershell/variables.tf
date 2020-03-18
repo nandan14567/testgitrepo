@@ -38,9 +38,9 @@ variable "admin_username" {
 variable "admin_password" {
   
 }
-variable "vmname_prefix" {
+# variable "vmname_prefix" {
   
-}
+# }
 variable "vnet_id" {
   
 }

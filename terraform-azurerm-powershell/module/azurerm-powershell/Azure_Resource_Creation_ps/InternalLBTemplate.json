@@ -16,7 +16,7 @@
         "description": "Admin password"
       }
     },
-    "vmNamePrefix": {
+    "vmNames": {
       "type": "array",
       "defaultValue": [],
       "metadata": {
@@ -99,7 +99,7 @@
     {
       "apiVersion": "2018-04-01",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('networkInterfaceName'), copyindex())]",
+      "name": "[concat(parameters('vmNames')[copyIndex()],variables('networkInterfaceName'))]",
       "location": "[parameters('location')]",
       "tags": {
         "NAME": "Recipe",
@@ -206,7 +206,7 @@
     {
       "apiVersion": "2018-04-01",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[parameters('vmNamePrefix')[copyIndex()]]",
+      "name": "[parameters('vmNames')[copyIndex()]]",
       "tags": {
         "NAME": "Recipe",
         "BILLINGCODE": "<NONE>",
@@ -233,7 +233,7 @@
           "vmSize": "Standard_DS2_V2"
         },
         "osProfile": {
-          "computerName": "[parameters('vmNamePrefix')[copyIndex()]]",
+          "computerName": "[parameters('vmNames')[copyIndex()]]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -251,7 +251,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('networkInterfaceName'), copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('vmNames')[copyIndex()],variables('networkInterfaceName'))]"
             }
           ]
         },

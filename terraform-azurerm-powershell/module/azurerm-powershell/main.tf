@@ -38,7 +38,7 @@
                 "parameters":  {
                                    "adminUsername":  "${var.admin_username}",
                                    "adminPassword":  "${var.admin_password}",
-                                   "vmNamePrefix":  "${var.vmname_prefix}",
+                                   "vmNames":  "",
                                    "virtualNetworkName":  "${var.vnet_id}",
                                    "LoadBalancerprivateIPAddress":  "${var.lb_private_ipaddress}",
                                    "AVSetUpdateDomainCount":  ${var.avset_updatedomaincount},

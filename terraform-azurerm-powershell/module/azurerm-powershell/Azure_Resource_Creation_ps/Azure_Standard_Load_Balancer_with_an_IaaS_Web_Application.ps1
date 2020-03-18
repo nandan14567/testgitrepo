@@ -104,8 +104,8 @@ Function VM_Provisioning {
     write-host $vmName
 
     $paramFile = Get-Content $FileName | ConvertFrom-Json 
-    $paramFile.ILB.parameters.vmNamePrefix=$output
-   # $paramFile.ILB.parameters.vmNamePrefix = $paramFile.ILB.parameters.vmNamePrefix + "-" + $vmName
+    $paramFile.ILB.parameters.vmNames = $output
+    # $paramFile.ILB.parameters.vmNamePrefix = $paramFile.ILB.parameters.vmNamePrefix + "-" + $vmName
     $paramFile | ConvertTo-Json #| Set-Content $FileName
     $LB = $paramFile.ILB.parameters | ConvertTo-Json 
     $LB1 = $LB | ConvertFrom-Json
@@ -150,7 +150,8 @@ Function Cloud_ScriptAPI {
 
         $json1 = get-content -Raw $FileName | ConvertFrom-Json
         $cscriptData = $json1.cloudscript
-        $cscriptData.ResourceIdentifier = $paramFile.ILB.parameters.vmNamePrefix + "-" + $server
+        # $cscriptData.ResourceIdentifier = $paramFile.ILB.parameters.vmNamePrefix + "-" + $server
+        $cscriptData.ResourceIdentifier = $server
         $cs = $cscriptData | Convertto-json 
 
         Write-Host $cs
