@@ -17,8 +17,8 @@
       }
     },
     "vmNamePrefix": {
-      "type": "string",
-      "defaultValue": "",
+      "type": "array",
+      "defaultValue": [],
       "metadata": {
         "description": "Prefix to use for VM names"
       }
@@ -206,7 +206,7 @@
     {
       "apiVersion": "2018-04-01",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
+      "name": "[parameters('vmNamePrefix')[copyIndex()]]",
       "tags": {
         "NAME": "Recipe",
         "BILLINGCODE": "<NONE>",
@@ -233,7 +233,7 @@
           "vmSize": "Standard_DS2_V2"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex(1))]",
+          "computerName": "[parameters('vmNamePrefix')[copyIndex()]]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
