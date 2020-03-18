@@ -1,16 +1,13 @@
 {
     "token":  {
                   "grant_type":  "client_credentials",
-                  "resource":  "https://management.core.windows.net"
+                  "resource":  "9f11e6db-715d-45a7-887e-01e00b9bc968"
               },
     "servernaming":  {
                          "environment":  "PPRD",
                          "system":  "Testing",
                          "vmAllocationRequest":  [
-                            {
-                                "componentKey": "WEB",
-                                "numberServers": "2"
-                            }
+                                                     "@{componentKey=WEB; numberServers=2}"
                                                  ]
                      },
     "cloudscript":  {
@@ -18,14 +15,13 @@
                         "ResourceLocation":  "AZRG-USE-ITS-RCPNPD-NPD-001",
                         "Domain":  "us.deloitte.com",
                         "ResourceIdentifier":  "",
-                        "Environment":  "dev",
-                        "Provider":  "Azure",
-                        "OperatingSystem":  "Windows"
+                        "Environment":  "DEV",
+                        "Provider":  "azure",
+                        "OperatingSystem":  "windows"
                     },
     "sendemail":  {
                       "toEmails":  [
-                                       
-                                       "shabmir@deloitte.com"
+                                       "avahab@deloitte.com"
                                    ]
                   },
     "ILB":  {
