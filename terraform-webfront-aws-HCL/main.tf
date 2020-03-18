@@ -63,6 +63,6 @@ module "application_load_balancer" {
   resource                     = var.resource
 }
 
-# terraform {
-#     backend "azurerm" {}
-# }
+ terraform {
+     backend "azurerm" {}
+ }
