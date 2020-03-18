@@ -82,15 +82,13 @@ resource "aws_lb_target_group_attachment" "test" {
 //Token Generation API 
 resource "null_resource" "test-api1" {
   triggers = {
-    values ="${var.instance_names[0]"
+    values ="${aws_instance.my-instance[0].id}"
   }
   //this is to get token
   provisioner "local-exec" {
-   //get token using single payload
       command="./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
       interpreter = ["PowerShell", "-Command"]
    }
-  #"file_tokenpayload" "file_outputtoken"
 }
 
 //Puppet installation api Payload Creation
