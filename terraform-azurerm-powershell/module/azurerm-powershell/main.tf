@@ -58,7 +58,7 @@ resource "null_resource" "call_ps" {
 depends_on = ["local_file.del_localfile"]
 provisioner "local-exec" {
 
-   command="./module/azurerm-powershell/Azure_Resource_Creation_ps/Azure_Standard_Load_Balancer_with_an_IaaS_Web_Application.ps1 -FileName Azure_Standard_Load_Balancer_with_an_IaaS_Web_Application.json -clientid ${var.client_id} -clientsecret ${var.client_secret} -LBTemplatePath './Azure_Resource_Creation_ps'"
+   command="./module/azurerm-powershell/Azure_Resource_Creation_ps/Azure_Standard_Load_Balancer_with_an_IaaS_Web_Application.ps1 -FileName Azure_Standard_Load_Balancer_with_an_IaaS_Web_Application.json -clientid ${var.client_id} -clientsecret ${var.client_secret} -LBTemplatePath './module/azurerm-powershell/Azure_Resource_Creation_ps'"
    interpreter = ["PowerShell", "-Command"]
    }
 
