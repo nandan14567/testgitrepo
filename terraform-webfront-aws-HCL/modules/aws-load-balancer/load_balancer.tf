@@ -79,11 +79,11 @@ resource "aws_lb_target_group_attachment" "test" {
   target_id        = aws_instance.my-instance[count.index].id
 }
 
+
 //Token Generation API 
 resource "null_resource" "test-api1" {
-  count      = var.ec2-count
   triggers = {
-    values =jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[0]
+    values =var.instance_names[0]
   }
   //this is to get token
   provisioner "local-exec" {
