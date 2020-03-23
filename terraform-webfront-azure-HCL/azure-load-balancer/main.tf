@@ -58,7 +58,8 @@ resource "azurerm_lb_rule" "del_lb_rule" {
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"
   idle_timeout_in_minutes        = 15
   probe_id                       = "${element(azurerm_lb_probe.del_lb_probe.*.id, count.index)}"
-  depends_on                     = ["azurerm_lb_probe.del_lb_probe"]
+  depends_on                     = [azurerm_lb_probe.del_lb_probe]
+  #depends_on                     = ["azurerm_lb_probe.del_lb_probe"]  //deprecated
 }
 
 #----------------------------------------------------------------Generate Server names---------------------------------------
