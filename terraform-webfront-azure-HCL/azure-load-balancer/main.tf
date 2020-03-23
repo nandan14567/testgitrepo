@@ -6,7 +6,7 @@ data "azurerm_virtual_network" "del_vnet" {
 
 #using existing subnets
 data "azurerm_subnet" "del_subnet" {
-  name="${var.subnet_name}"
+  name = "${var.subnet_name}"
   #name                 = "${data.azurerm_virtual_network.del_vnet.subnets[0]}"
   resource_group_name  = "${data.azurerm_virtual_network.del_vnet.resource_group_name}"
   virtual_network_name = "${data.azurerm_virtual_network.del_vnet.name}"
@@ -82,16 +82,16 @@ resource "null_resource" "test-api1" {
     values = jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[0]
   }
   provisioner "local-exec" {
-   //get token using single payload
-      command="./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-      interpreter = ["PowerShell", "-Command"]
-   }
+    //get token using single payload
+    command     = "./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
+    interpreter = ["PowerShell", "-Command"]
+  }
 }
 
 #--------------------------------------------------------local file and null resource here-----------------------------------
- resource "local_file" "terraform_tf" {
-   count="${var.vm_count}"
-   content = <<EOF
+resource "local_file" "terraform_tf" {
+  count    = "${var.vm_count}"
+  content  = <<EOF
      {
      "AccountID":  "${var.subscription_id}",
      "ResourceLocation":  "${var.resource_group}",
@@ -102,96 +102,96 @@ resource "null_resource" "test-api1" {
      "OperatingSystem":  "${var.OperatingSystem}"
   }
      EOF
- filename = "${path.root}/temppayload${count.index}.json"
+  filename = "${path.root}/temppayload${count.index}.json"
 
- }
+}
 
 # #-----------------------------------------Virtual machine----------------------------------------------------------------------------------
- resource "azurerm_virtual_machine" "del_virtual_machine" {
-   name                  = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}"
-   location              = "${var.location}"
-   resource_group_name   = "${var.resource_group}"
-   availability_set_id   = "${azurerm_availability_set.del_availability_set.id}"
-   network_interface_ids = ["${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"]
-   vm_size               = "Standard_D1_v2"
-   count                 = "${var.vm_count}"
-  
-   # Uncomment this line to delete the OS disk automatically when deleting the VM
-   delete_os_disk_on_termination = true
+resource "azurerm_virtual_machine" "del_virtual_machine" {
+  name                  = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}"
+  location              = "${var.location}"
+  resource_group_name   = "${var.resource_group}"
+  availability_set_id   = "${azurerm_availability_set.del_availability_set.id}"
+  network_interface_ids = ["${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"]
+  vm_size               = "Standard_D1_v2"
+  count                 = "${var.vm_count}"
 
-   # Uncomment this line to delete the data disks automatically when deleting the VM
-   delete_data_disks_on_termination = true
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
 
- storage_image_reference {
-     publisher = "MicrosoftWindowsServer"
-     offer     = "WindowsServer"
-     sku       = "${var.server_version}-Datacenter"
-     version   = "latest"
-   }
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
 
-   storage_os_disk {
-     name              = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}-disk"
-     caching           = "ReadWrite"
-     create_option     = "FromImage"
-     managed_disk_type = "Standard_LRS"
-     os_type           = "Windows"
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "${var.server_version}-Datacenter"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}-disk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+    os_type           = "Windows"
 
   }
 
-   # storage_image_reference {
-   #   publisher = "MicrosoftWindowsDesktop"
-   #   offer     = "Windows-10"
-   #   sku       = "rs4-pro"
-   #   version   = "latest"
-   # }
- 
+  # storage_image_reference {
+  #   publisher = "MicrosoftWindowsDesktop"
+  #   offer     = "Windows-10"
+  #   sku       = "rs4-pro"
+  #   version   = "latest"
+  # }
 
-   os_profile {
-     computer_name  = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}"
-     admin_username = "${var.admin_user}"
-     admin_password = "${var.admin_password}"
-   }
 
-   tags = "${var.res_tags}"
+  os_profile {
+    computer_name  = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}"
+    admin_username = "${var.admin_user}"
+    admin_password = "${var.admin_password}"
+  }
 
-   os_profile_windows_config {
-     provision_vm_agent = true
-   }
-     //this is to call puppet installation API
-   provisioner "local-exec" {
-   command="curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
-   }
- }
+  tags = "${var.res_tags}"
 
- resource "azurerm_network_interface" "del_network_interface" {
-   count               = "${var.vm_count}"
-   name                = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}-nic"
-   location            = "${var.location}"
-   resource_group_name = "${var.resource_group}"
-   ip_configuration {
-     name                                    = "testconfiguration"
-     subnet_id                               = "${data.azurerm_subnet.del_subnet.id}"
-     private_ip_address_allocation           = "Dynamic"
-     # load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"]
-   }
-   tags                = "${var.res_tags}"
- }
+  os_profile_windows_config {
+    provision_vm_agent = true
+  }
+  //this is to call puppet installation API
+  provisioner "local-exec" {
+    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  }
+}
 
- resource "azurerm_network_interface_backend_address_pool_association" "del_association_to_lb" {
- count = "${var.vm_count}"
- network_interface_id = "${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"
- ip_configuration_name = "testconfiguration"
- backend_address_pool_id = "${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"
- }
+resource "azurerm_network_interface" "del_network_interface" {
+  count               = "${var.vm_count}"
+  name                = "${jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers[count.index]}-nic"
+  location            = "${var.location}"
+  resource_group_name = "${var.resource_group}"
+  ip_configuration {
+    name                          = "testconfiguration"
+    subnet_id                     = "${data.azurerm_subnet.del_subnet.id}"
+    private_ip_address_allocation = "Dynamic"
+    # load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"]
+  }
+  tags = "${var.res_tags}"
+}
 
- resource "azurerm_availability_set" "del_availability_set" {
-   name                         = "${var.prefix}-avset"
-   location                     = "${var.location}"
-   resource_group_name          = "${var.resource_group}"
-   platform_fault_domain_count  = "${var.vm_count}"
-   platform_update_domain_count = "${var.vm_count}"
-   managed                      = true
- }
+resource "azurerm_network_interface_backend_address_pool_association" "del_association_to_lb" {
+  count                   = "${var.vm_count}"
+  network_interface_id    = "${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"
+  ip_configuration_name   = "testconfiguration"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"
+}
+
+resource "azurerm_availability_set" "del_availability_set" {
+  name                         = "${var.prefix}-avset"
+  location                     = "${var.location}"
+  resource_group_name          = "${var.resource_group}"
+  platform_fault_domain_count  = "${var.vm_count}"
+  platform_update_domain_count = "${var.vm_count}"
+  managed                      = true
+}
 
 
 # #------------------------------------------------------------------------------------------
