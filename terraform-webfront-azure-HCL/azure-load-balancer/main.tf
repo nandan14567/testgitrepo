@@ -6,8 +6,8 @@ data "azurerm_virtual_network" "del_vnet" {
 
 #using existing subnets
 data "azurerm_subnet" "del_subnet" {
-
-  name                 = "${data.azurerm_virtual_network.del_vnet.subnets[0]}"
+  name="${var.subnet_name}"
+  #name                 = "${data.azurerm_virtual_network.del_vnet.subnets[0]}"
   resource_group_name  = "${data.azurerm_virtual_network.del_vnet.resource_group_name}"
   virtual_network_name = "${data.azurerm_virtual_network.del_vnet.name}"
 

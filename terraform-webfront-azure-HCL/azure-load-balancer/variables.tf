@@ -79,3 +79,8 @@ variable "componentKey_sn"{
 variable "server_version" {
   
 }
+
+variable "subnet_name" {
+  
+}
+

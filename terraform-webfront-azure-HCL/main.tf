@@ -14,6 +14,7 @@ module "azure-load-balancer-module" {
   client_secret = "${var.client_secret}"
 
   vnet_name           = "${var.vnet_name}"
+  subnet_name =${var.subnet_name}
   vnet_resource_group = "${var.vnet_resource_group}"
 
   location       = "${var.location}"
