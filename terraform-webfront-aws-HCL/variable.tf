@@ -1,6 +1,17 @@
 variable "region" {
   description = "AWS region for hosting your network"
 }
+variable "lb_name" {
+  
+}
+variable "receipe_tags" {
+  
+}
+
+variable "SecurityGroup_Puppet" {
+  
+}
+
 variable "access_key"{
 }
 variable "secret_key"{

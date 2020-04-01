@@ -1,10 +1,13 @@
 ### Creating application LB
 resource "aws_lb" "del_load_balancer" {
-  name               = "terraform-asg-example1"
+  name               = var.lb_name
   load_balancer_type = "application"
   security_groups    = var.aws_lb_security_group
   subnets            = data.aws_subnet_ids.del_subnet_ids.ids
   internal           = true
+  tags               = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
+  }
 
 }
 ##getting subnets 
@@ -17,6 +20,9 @@ resource "aws_lb_target_group" "del_target_group" {
   port     = lookup(var.target_group, "backend_port", null)
   protocol = lookup(var.target_group, "backend_protocol", null) != null ? upper(lookup(var.target_group, "backend_protocol")) : null
   vpc_id   = data.aws_subnet_ids.del_subnet_ids.vpc_id
+  tags     = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
+  }
 }
 #Listeners for LB
 resource "aws_lb_listener" "del_frontend_http_tcp" {
@@ -46,13 +52,17 @@ resource "aws_lb_listener" "del_frontend_https" {
 
 #EC2 Instances For LB
 resource "aws_instance" "my-instance" {
-  count           = var.ec2-count
-  ami             = var.ami_id
-  instance_type   = var.instance_type
-  subnet_id       = "${element(tolist(data.aws_subnet_ids.del_subnet_ids.ids), count.index)}"
-  key_name        = var.key_name
+  count                  = var.ec2-count
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = "${element(tolist(data.aws_subnet_ids.del_subnet_ids.ids), count.index)}"
+  key_name               = var.key_name
   vpc_security_group_ids = var.instance_security_group
   iam_instance_profile   = var.instance_role
+  tags                   = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
+  }
+
   user_data = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
@@ -66,10 +76,7 @@ resource "aws_instance" "my-instance" {
               sudo /etc/init.d/apache2 restart
               reboot
               EOF
-          # echo "This is new instance"
-  tags = {
-    Name = var.instance_names[count.index]
-  }
+
 }
 
 #EC2 Instance Linking with Target Group
@@ -82,13 +89,13 @@ resource "aws_lb_target_group_attachment" "test" {
 //Token Generation API 
 resource "null_resource" "test-api1" {
   triggers = {
-    values ="${aws_instance.my-instance[0].id}"
+    values = "${aws_instance.my-instance[0].id}"
   }
   //this is to get token
   provisioner "local-exec" {
-      command="./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-      interpreter = ["PowerShell", "-Command"]
-   }
+    command     = "./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
+    interpreter = ["PowerShell", "-Command"]
+  }
 }
 
 //Puppet installation api Payload Creation
@@ -103,7 +110,8 @@ resource "local_file" "terraform_tf" {
         "ResourceIdentifier":"${aws_instance.my-instance[count.index].id}",
         "Environment":  "${var.Environment}",
         "Provider":  "${var.Provider}",
-        "OperatingSystem":  "${var.OperatingSystem}"
+        "OperatingSystem":  "${var.OperatingSystem}",
+        "SecurityGroup": "${var.SecurityGroup}"
     }
     EOF
   filename   = "${path.root}/temppayload${count.index}.json"
@@ -114,14 +122,13 @@ resource "null_resource" "test-api3" {
   count      = var.ec2-count
   depends_on = ["local_file.terraform_tf", "aws_instance.my-instance", "aws_lb.del_load_balancer", "aws_lb_target_group.del_target_group", "aws_lb_listener.del_frontend_http_tcp", "aws_lb_listener.del_frontend_https"]
   triggers = {
-    values ="${aws_instance.my-instance[count.index].id}"
+    values = "${aws_instance.my-instance[count.index].id}"
   }
-  provisioner "local-exec"{
-     command="Start-Sleep -s 60"
-     interpreter = ["PowerShell", "-Command"]
+  provisioner "local-exec" {
+    command     = "Start-Sleep -s 60"
+    interpreter = ["PowerShell", "-Command"]
   }
   provisioner "local-exec" {
     command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   }
 }
-

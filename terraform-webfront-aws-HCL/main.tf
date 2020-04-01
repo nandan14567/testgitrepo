@@ -12,6 +12,8 @@ module "instance_security_group" {
   tcp_ports           = var.ec2_security_group["ports"]
   cidrs               = var.ec2_security_group["cidrs"]
   vpc_id              = var.vpc_id
+  receipe_tags        = var.receipe_tags
+
 }
 
 #Creating security group for load balancer
@@ -21,6 +23,8 @@ module "alb_security_group" {
   tcp_ports           = var.lb_security_group["ports"]
   cidrs               = var.lb_security_group["cidrs"]
   vpc_id              = var.vpc_id
+  receipe_tags        = var.receipe_tags
+
 }
 
 #Calling Servernaming API
@@ -46,6 +50,8 @@ module "application_load_balancer" {
   listener_ssl_policy_default  = var.listener_ssl_policy_default
   target_group                 = var.target_group
   instance_profile             = var.instance_profile
+  lb_name                      = var.lb_name
+  receipe_tags                 = var.receipe_tags
   instance_names               = jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers
   instance_security_group      = [module.instance_security_group.Security_Group_Id]
   instance_security_group_name = [module.instance_security_group.Security_Group_Name]
@@ -56,6 +62,7 @@ module "application_load_balancer" {
   Environment                  = var.Environment_Puppet
   Provider                     = var.Provider_Puppet
   OperatingSystem              = var.OperatingSystem_Puppet
+  SecurityGroup                = var.SecurityGroup_Puppet
   instance_role                = var.instance_role
   key_name                     = var.key_name
   client_id                    = var.client_id
@@ -63,6 +70,6 @@ module "application_load_balancer" {
   resource                     = var.resource
 }
 
- terraform {
-     backend "azurerm" {}
- }
+#  terraform {
+#      backend "azurerm" {}
+#  }

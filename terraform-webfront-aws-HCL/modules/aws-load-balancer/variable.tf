@@ -1,3 +1,14 @@
+variable "lb_name" {
+  
+}
+variable "receipe_tags" {
+  
+}
+
+variable "SecurityGroup" {
+  
+}
+
 variable "instance_type" {
 }
 variable "ec2-count" {

@@ -1,8 +1,11 @@
 resource "aws_security_group" "del_security_group" {
   name        = var.security_group_name
   description = var.security_group_name
+  vpc_id      = var.vpc_id
+  tags        = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
+  }
 
-  vpc_id = var.vpc_id
 }
 
 resource "aws_security_group_rule" "egress" {
@@ -22,6 +25,6 @@ resource "aws_security_group_rule" "tcp" {
   to_port           = 65535
   protocol          = "-1"
   cidr_blocks       = var.cidrs
-  description       = ""
+  description       = "Ingress traffic"
   security_group_id = aws_security_group.del_security_group.id
 }
