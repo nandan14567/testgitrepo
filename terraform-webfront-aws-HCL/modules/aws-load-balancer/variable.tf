@@ -1,7 +1,7 @@
 variable "lb_name" {
   
 }
-variable "receipe_tags" {
+variable "ec2_subnet_id" {
   
 }
 

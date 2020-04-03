@@ -55,15 +55,14 @@ resource "aws_instance" "my-instance" {
   count                  = var.ec2-count
   ami                    = var.ami_id
   instance_type          = var.instance_type
-  subnet_id              = "${element(tolist(data.aws_subnet_ids.del_subnet_ids.ids), count.index)}"
+  subnet_id              = var.ec2_subnet_id
   key_name               = var.key_name
   vpc_security_group_ids = var.instance_security_group
   iam_instance_profile   = var.instance_role
   tags                   = {
     DCR: "AWS-WEBFALB0002-0.0.1"
   }
-
-  user_data = <<-EOF
+  user_data = var.OperatingSystem == "windows" ? 0 : <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
               sudo apt update
@@ -76,6 +75,20 @@ resource "aws_instance" "my-instance" {
               sudo /etc/init.d/apache2 restart
               reboot
               EOF
+ 
+  # user_data = <<-EOF
+  #             #!/bin/bash
+  #             echo "Hello, World" > index.html
+  #             sudo apt update
+  #             sudo apt install apache2 --assume-yes
+  #             sudo hostnamectl set-hostname ${var.instance_names[count.index]}
+  #             echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
+  #             echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
+  #             sudo a2enmod ssl
+  #             sudo a2ensite default-ssl
+  #             sudo /etc/init.d/apache2 restart
+  #             reboot
+  #             EOF
 
 }
 

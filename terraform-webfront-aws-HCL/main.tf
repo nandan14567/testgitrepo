@@ -51,7 +51,7 @@ module "application_load_balancer" {
   target_group                 = var.target_group
   instance_profile             = var.instance_profile
   lb_name                      = var.lb_name
-  receipe_tags                 = var.receipe_tags
+  ec2_subnet_id                 = var.ec2_subnet_id
   instance_names               = jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers
   instance_security_group      = [module.instance_security_group.Security_Group_Id]
   instance_security_group_name = [module.instance_security_group.Security_Group_Name]
@@ -70,6 +70,6 @@ module "application_load_balancer" {
   resource                     = var.resource
 }
 
- terraform {
-     backend "azurerm" {}
- }
+#  terraform {
+#      backend "azurerm" {}
+#  }
