@@ -2,10 +2,6 @@ variable "tcp_ports" {
 
 }
 
-variable "receipe_tags" {
-
-}
-
 variable "cidrs" {
 
 }

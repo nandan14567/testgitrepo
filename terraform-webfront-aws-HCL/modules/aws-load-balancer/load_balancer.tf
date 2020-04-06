@@ -50,8 +50,46 @@ resource "aws_lb_listener" "del_frontend_https" {
   }
 }
 
+//Local File for Windows user Data
+resource "local_file" "windows_userdata" {
+  count = var.OperatingSystem=="windows"?1:0
+  content    = <<-EOF
+    <powershell> 
+    Start-Transcript; 
+    # Install IIS
+    Import-Module ServerManager; 
+    Enable-WindowsOptionalFeature -Online -NoRestart -FeatureName 'IIS-WebServerRole', 'IIS-WebServer', 'IIS-ManagementConsole';
+    # Configure Bindings to :443
+    New-WebBinding -Name "Default Web Site" -IP "*" -Port 443 -Protocol https -SslFlags 0;
+    $newCert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation cert:\LocalMachine\My; 
+    $SslBinding = Get-WebBinding -Name "Default Web Site" -Protocol "https";
+    $SslBinding.AddSslCertificate($newCert.GetCertHashString(), "my"); 
+    Get-WebBinding -Port 80 -Name "Default Web Site" | Remove-WebBinding;
+    </powershell>
+    EOF
+    filename   = "${path.root}/user_data.txt"
+}
+resource "local_file" "linux_userdata" {
+  count = var.OperatingSystem=="linux"?var.ec2-count:0
+  content    = <<-EOF
+    #!/bin/bash
+    echo "Hello, World" > index.html
+    sudo apt update
+    sudo apt install apache2 --assume-yes
+    sudo hostnamectl set-hostname ${var.instance_names[count.index]}
+    echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
+    echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
+    sudo a2enmod ssl
+    sudo a2ensite default-ssl
+    sudo /etc/init.d/apache2 restart
+    reboot
+    EOF
+    filename   = "${path.root}/user_data.txt"
+}
+
 #EC2 Instances For LB
 resource "aws_instance" "my-instance" {
+  depends_on=[local_file.linux_userdata,local_file.windows_userdata]
   count                  = var.ec2-count
   ami                    = var.ami_id
   instance_type          = var.instance_type
@@ -61,36 +99,10 @@ resource "aws_instance" "my-instance" {
   iam_instance_profile   = var.instance_role
   tags                   = {
     DCR: "AWS-WEBFALB0002-0.0.1"
+    Name = var.instance_names[count.index]
   }
-  user_data = var.OperatingSystem == "windows" ? 0 : <<-EOF
-              #!/bin/bash
-              echo "Hello, World" > index.html
-              sudo apt update
-              sudo apt install apache2 --assume-yes
-              sudo hostnamectl set-hostname ${var.instance_names[count.index]}
-              echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
-              echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
-              sudo a2enmod ssl
-              sudo a2ensite default-ssl
-              sudo /etc/init.d/apache2 restart
-              reboot
-              EOF
- 
-  # user_data = <<-EOF
-  #             #!/bin/bash
-  #             echo "Hello, World" > index.html
-  #             sudo apt update
-  #             sudo apt install apache2 --assume-yes
-  #             sudo hostnamectl set-hostname ${var.instance_names[count.index]}
-  #             echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
-  #             echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
-  #             sudo a2enmod ssl
-  #             sudo a2ensite default-ssl
-  #             sudo /etc/init.d/apache2 restart
-  #             reboot
-  #             EOF
-
-}
+  user_data = var.OperatingSystem == "windows" ? local_file.windows_userdata[0].content : local_file.linux_userdata[count.index].content
+  }
 
 #EC2 Instance Linking with Target Group
 resource "aws_lb_target_group_attachment" "test" {
@@ -115,7 +127,7 @@ resource "null_resource" "test-api1" {
 resource "local_file" "terraform_tf" {
   count      = var.ec2-count
   depends_on = ["aws_instance.my-instance", "aws_lb.del_load_balancer", "aws_lb_target_group.del_target_group", "aws_lb_listener.del_frontend_http_tcp", "aws_lb_listener.del_frontend_https"]
-  content    = <<EOF
+  content    = <<-EOF
     {
         "AccountID":  "${var.AccountID}",
         "ResourceLocation":  "${var.ResourceLocation}",
@@ -138,7 +150,7 @@ resource "null_resource" "test-api3" {
     values = "${aws_instance.my-instance[count.index].id}"
   }
   provisioner "local-exec" {
-    command     = "Start-Sleep -s 60"
+    command     = "Start-Sleep -s 300"
     interpreter = ["PowerShell", "-Command"]
   }
   provisioner "local-exec" {

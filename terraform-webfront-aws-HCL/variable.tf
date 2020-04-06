@@ -23,6 +23,9 @@ variable "lb_security_group" {
 variable "vpc_id" {
 }
 variable "ami_id" {
+  #ami-01652280c5135f94b -- windows
+  #ami-07ebfd5b3428b6f4d -- linux
+
 }
 variable "instance_type" {
 }

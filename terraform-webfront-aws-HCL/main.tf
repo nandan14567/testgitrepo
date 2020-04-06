@@ -12,8 +12,6 @@ module "instance_security_group" {
   tcp_ports           = var.ec2_security_group["ports"]
   cidrs               = var.ec2_security_group["cidrs"]
   vpc_id              = var.vpc_id
-  receipe_tags        = var.receipe_tags
-
 }
 
 #Creating security group for load balancer
@@ -23,13 +21,11 @@ module "alb_security_group" {
   tcp_ports           = var.lb_security_group["ports"]
   cidrs               = var.lb_security_group["cidrs"]
   vpc_id              = var.vpc_id
-  receipe_tags        = var.receipe_tags
-
 }
 
 #Calling Servernaming API
 data "external" "servernaming" {
-  program = ["sh", "${path.module}/servernaming.sh"]
+  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
   query = {
     numberServers = var.ec2-count
     environment   = var.environment_servernaming
@@ -52,7 +48,7 @@ module "application_load_balancer" {
   instance_profile             = var.instance_profile
   lb_name                      = var.lb_name
   ec2_subnet_id                 = var.ec2_subnet_id
-  instance_names               = jsondecode(base64decode(data.external.servernaming.result["base64_encoded"])).servers
+  instance_names               = data.external.servernaming.result
   instance_security_group      = [module.instance_security_group.Security_Group_Id]
   instance_security_group_name = [module.instance_security_group.Security_Group_Name]
   aws_lb_security_group        = [module.alb_security_group.Security_Group_Id]
