@@ -1,4 +1,4 @@
-### Creating application LB
+# Creating application LB
 resource "aws_lb" "del_load_balancer" {
   name               = var.lb_name
   load_balancer_type = "application"
@@ -8,12 +8,12 @@ resource "aws_lb" "del_load_balancer" {
   tags               = {
     DCR: "AWS-WEBFALB0002-0.0.1"
   }
-
 }
-##getting subnets 
+#Getting subnets 
 data "aws_subnet_ids" "del_subnet_ids" {
   vpc_id = var.vpc_id
 }
+
 #creating target group
 resource "aws_lb_target_group" "del_target_group" {
   name     = lookup(var.target_group, "name", null)
@@ -24,19 +24,20 @@ resource "aws_lb_target_group" "del_target_group" {
     DCR: "AWS-WEBFALB0002-0.0.1"
   }
 }
+
 #Listeners for LB
 resource "aws_lb_listener" "del_frontend_http_tcp" {
   count             = true ? length(var.http_tcp_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
   port              = var.http_tcp_listeners[count.index]["port"]
   protocol          = var.http_tcp_listeners[count.index]["protocol"]
-
   default_action {
     target_group_arn = aws_lb_target_group.del_target_group.arn
     type             = "forward"
   }
 }
 
+#Listeners for LB
 resource "aws_lb_listener" "del_frontend_https" {
   count             = true ? length(var.https_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
@@ -52,27 +53,37 @@ resource "aws_lb_listener" "del_frontend_https" {
 
 //Local File for Windows user Data
 resource "local_file" "windows_userdata" {
-  count = var.OperatingSystem=="windows"?1:0
+  count = var.OperatingSystem=="windows"?var.ec2-count:0
   content    = <<-EOF
+    <script>
+     mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
+     echo {"elevated_groups": {"Administrators":  ["us\\SG-US-868978391936-Admin","us\\SG-US-197151468794-Admin"]}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
+     wmic computersystem where name="%COMPUTERNAME%" call rename name="${var.instance_names[count.index]}"
+    </script>
     <powershell> 
-    Start-Transcript; 
-    # Install IIS
-    Import-Module ServerManager; 
-    Enable-WindowsOptionalFeature -Online -NoRestart -FeatureName 'IIS-WebServerRole', 'IIS-WebServer', 'IIS-ManagementConsole';
-    # Configure Bindings to :443
-    New-WebBinding -Name "Default Web Site" -IP "*" -Port 443 -Protocol https -SslFlags 0;
-    $newCert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation cert:\LocalMachine\My; 
-    $SslBinding = Get-WebBinding -Name "Default Web Site" -Protocol "https";
-    $SslBinding.AddSslCertificate($newCert.GetCertHashString(), "my"); 
-    Get-WebBinding -Port 80 -Name "Default Web Site" | Remove-WebBinding;
+      Start-Transcript; 
+      # Install IIS
+      Import-Module ServerManager; 
+      Enable-WindowsOptionalFeature -Online -NoRestart -FeatureName 'IIS-WebServerRole', 'IIS-WebServer', 'IIS-ManagementConsole';
+      # Configure Bindings to :443
+      New-WebBinding -Name "Default Web Site" -IP "*" -Port 443 -Protocol https -SslFlags 0;
+      $newCert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation cert:\LocalMachine\My; 
+      $SslBinding = Get-WebBinding -Name "Default Web Site" -Protocol "https";
+      $SslBinding.AddSslCertificate($newCert.GetCertHashString(), "my"); 
+      Get-WebBinding -Port 80 -Name "Default Web Site" | Remove-WebBinding;
+      Restart-Computer
     </powershell>
     EOF
     filename   = "${path.root}/user_data.txt"
 }
+
+// local file for linux_userdata
 resource "local_file" "linux_userdata" {
   count = var.OperatingSystem=="linux"?var.ec2-count:0
   content    = <<-EOF
     #!/bin/bash
+    mkdir -p /etc/puppetlabs/facter/facts.d
+    echo {"elevated_groups": {"sudo_groups": ["%sg-us-197151468794-admin","%sg-us-868978391936-admin"],"access_groups": ["sg-us-197151468794-admin","sg-us-868978391936-admin"]}}>/etc/puppetlabs/facter/facts.d/elevated_groups.json
     echo "Hello, World" > index.html
     sudo apt update
     sudo apt install apache2 --assume-yes
@@ -101,7 +112,7 @@ resource "aws_instance" "my-instance" {
     DCR: "AWS-WEBFALB0002-0.0.1"
     Name = var.instance_names[count.index]
   }
-  user_data = var.OperatingSystem == "windows" ? local_file.windows_userdata[0].content : local_file.linux_userdata[count.index].content
+  user_data = var.OperatingSystem == "windows" ? local_file.windows_userdata[count.index].content : local_file.linux_userdata[count.index].content
   }
 
 #EC2 Instance Linking with Target Group
@@ -128,17 +139,17 @@ resource "local_file" "terraform_tf" {
   count      = var.ec2-count
   depends_on = ["aws_instance.my-instance", "aws_lb.del_load_balancer", "aws_lb_target_group.del_target_group", "aws_lb_listener.del_frontend_http_tcp", "aws_lb_listener.del_frontend_https"]
   content    = <<-EOF
-    {
-        "AccountID":  "${var.AccountID}",
-        "ResourceLocation":  "${var.ResourceLocation}",
-        "Domain":  "${var.Domain}",
-        "ResourceIdentifier":"${aws_instance.my-instance[count.index].id}",
-        "Environment":  "${var.Environment}",
-        "Provider":  "${var.Provider}",
-        "OperatingSystem":  "${var.OperatingSystem}",
-        "SecurityGroup": "${var.SecurityGroup}"
-    }
-    EOF
+  {
+      "AccountID":  "${var.AccountID}",
+      "ResourceLocation":  "${var.ResourceLocation}",
+      "Domain":  "${var.Domain}",
+      "ResourceIdentifier":"${aws_instance.my-instance[count.index].id}",
+      "Environment":  "${var.Environment}",
+      "Provider":  "${var.Provider}",
+      "OperatingSystem":  "${var.OperatingSystem}",
+      "SecurityGroup": "${var.SecurityGroup}"
+  }
+  EOF
   filename   = "${path.root}/temppayload${count.index}.json"
 }
 
