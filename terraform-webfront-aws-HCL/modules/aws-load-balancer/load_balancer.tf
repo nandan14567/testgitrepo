@@ -58,7 +58,6 @@ resource "local_file" "windows_userdata" {
     <script>
      mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
      echo {"elevated_groups": {"Administrators":  ["us\\SG-US-868978391936-Admin","us\\SG-US-197151468794-Admin"]}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
-     wmic computersystem where name="%COMPUTERNAME%" call rename name="${var.instance_names[count.index]}"
     </script>
     <powershell> 
       Start-Transcript; 
