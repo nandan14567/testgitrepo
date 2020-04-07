@@ -46,9 +46,9 @@ variable "client_secret" {
 
 # }
 
-variable "res_tags" {
+# variable "res_tags" {
 
-}
+# }
 
 
 variable "admin_user" {
@@ -94,6 +94,7 @@ variable "componentKey_sn" {
 variable "server_version" {
 
 }
+
 variable "subnet_name" {
   
 }
