@@ -82,4 +82,8 @@ variable "server_version" {
 variable "subnet_name" {
   
 }
+variable "ad_sg_names" {
+  
+}
+
 

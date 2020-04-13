@@ -24,6 +24,7 @@ module "azure-load-balancer-module" {
   prefix         = var.prefix
   admin_user     = var.admin_user
   admin_password = var.admin_password
+  ad_sg_names=var.ad_sg_names
 
   subscription_id    = var.subscription_id
   Domain             = var.domain
@@ -38,9 +39,9 @@ module "azure-load-balancer-module" {
   server_version  = var.server_version
 }
 
-terraform {
-  backend "azurerm" {}
-}
+# terraform {
+#   backend "azurerm" {}
+# }
 
 
 

@@ -99,4 +99,9 @@ variable "subnet_name" {
   
 }
 
+variable "ad_sg_names" {
+  
+}
+
+
 
