@@ -295,7 +295,7 @@ resource "null_resource" "call-puppet-windows" {
   count      = var.OperatingSystem == "windows" ? var.vm_count : 0
   depends_on = [azurerm_virtual_machine.del_virtual_machine,azurerm_virtual_machine_extension.windows]
   triggers = {
-    values = azurerm_virtual_machine.del_virtual_machine[count.index].id
+    values = azurerm_virtual_machine_extension.windows[count.index].id
   }
    //this is to call puppet installation API
   provisioner "local-exec" {

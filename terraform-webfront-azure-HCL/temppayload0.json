@@ -1,9 +1,0 @@
-     {
-     "AccountID":  "56003d19-6be2-43f1-a69e-d8ec45457b99",
-     "ResourceLocation":  "AZRG-USE-ITS-RCPNPD-NPD-001",
-     "Domain":  "us.deloitte.com",
-     "ResourceIdentifier":  "USAZURPPD00001",
-     "Environment":  "NPD",
-     "Provider":  "azure",
-     "OperatingSystem":  "windows"
-  }
