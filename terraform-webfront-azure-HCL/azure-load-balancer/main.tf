@@ -218,8 +218,7 @@ data "null_data_source" "values" {
  "Administrators":  
    ${jsonencode(split(",", var.ad_sg_names))}
  }
-}' >C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
-
+}'| out-file -encoding ASCII C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
      EOF
   }
 }
