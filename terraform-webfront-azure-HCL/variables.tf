@@ -22,12 +22,6 @@ variable "client_id" {
 }
 variable "client_secret" {
 }
-variable "admin_user" {
-  description = "User name to use as the admin account on the VMs that will be part of the VM Scale Set"
-
-}
-variable "admin_password" {
-}
 variable "lb_port" {
   #  default={ http  = ["80", "Tcp", "80"]
   #    https = ["443", "Tcp", "443"]
@@ -51,9 +45,9 @@ variable "componentKey_sn" {
 }
 variable "server_version" {
 }
-variable "subnet_name" {  
+variable "subnet_name" {
 }
-variable "ad_sg_names" {  
+variable "ad_sg_names" {
 }
 
 

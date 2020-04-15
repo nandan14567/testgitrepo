@@ -20,11 +20,8 @@ module "azure-load-balancer-module" {
   vm_count            = var.vm_count
   lb_port             = var.lb_port
   frontend_name       = var.frontend_name
-
-  prefix         = var.prefix
-  admin_user     = var.admin_user
-  admin_password = var.admin_password
-  ad_sg_names=var.ad_sg_names
+  prefix              = var.prefix
+  ad_sg_names         = var.ad_sg_names
 
   subscription_id    = var.subscription_id
   Domain             = var.domain

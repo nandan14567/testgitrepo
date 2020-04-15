@@ -1,4 +1,16 @@
-#------------------------------------------using existing vnet--------------------------------------------------------------
+#----------------------------------Random Admin username and password Generation----------------------------------------------
+resource "random_string" "username" {
+  length  = 10
+  special = false
+  upper   = false
+  number  = false
+}
+resource "random_password" "password" {
+  length  = 18
+  special = true
+}
+
+#------------------------------------------using existing vnet----------------------------------------------------------------------
 data "azurerm_virtual_network" "del_vnet" {
   name                = var.vnet_name
   resource_group_name = var.vnet_resource_group
@@ -187,9 +199,9 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
 
   os_profile {
     computer_name  = data.external.servernaming.result[count.index]
-    admin_username = var.admin_user
-    admin_password = var.admin_password
-    custom_data=base64encode(data.null_data_source.linux-values.outputs["data"])
+    admin_username = random_string.username.result
+    admin_password = random_password.password.result
+    custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
   }
 
   tags = {
@@ -263,8 +275,8 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
 
   os_profile {
     computer_name  = data.external.servernaming.result[count.index]
-    admin_username = var.admin_user
-    admin_password = var.admin_password
+    admin_username = random_string.username.result
+    admin_password = random_password.password.result
 
   }
 
@@ -279,29 +291,29 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
 
 
 resource "azurerm_virtual_machine_extension" "windows" {
-  count                = var.OperatingSystem == "windows" ? var.vm_count : 0
-  name                 = "${data.external.servernaming.result[count.index]}run-commands"
-  virtual_machine_id   = azurerm_virtual_machine.del_virtual_machine[count.index].id
-  publisher            = "Microsoft.CPlat.Core"
-  type                 = "RunCommandWindows"
-  type_handler_version = "1.1"
+  count                      = var.OperatingSystem == "windows" ? var.vm_count : 0
+  name                       = "${data.external.servernaming.result[count.index]}run-commands"
+  virtual_machine_id         = azurerm_virtual_machine.del_virtual_machine[count.index].id
+  publisher                  = "Microsoft.CPlat.Core"
+  type                       = "RunCommandWindows"
+  type_handler_version       = "1.1"
   auto_upgrade_minor_version = true
-  settings             = jsonencode(local.command_windows)
+  settings                   = jsonencode(local.command_windows)
 }
 
 #-----------------------------------puppet api call for windows machines-----------------------------------------
 resource "null_resource" "call-puppet-windows" {
   count      = var.OperatingSystem == "windows" ? var.vm_count : 0
-  depends_on = [azurerm_virtual_machine.del_virtual_machine,azurerm_virtual_machine_extension.windows]
+  depends_on = [azurerm_virtual_machine.del_virtual_machine, azurerm_virtual_machine_extension.windows]
   triggers = {
     values = azurerm_virtual_machine_extension.windows[count.index].id
   }
-   //this is to call puppet installation API
+  //this is to call puppet installation API
   provisioner "local-exec" {
     command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   }
 }
- 
+
 # ##########################################################
 ## Install IIS on VM
 ##########################################################
