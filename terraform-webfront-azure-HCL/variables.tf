@@ -49,6 +49,15 @@ variable "subnet_name" {
 }
 variable "ad_sg_names" {
 }
+variable "golden_image_name" {
+}
+variable "img_gallery_name" {
+}
+variable "img_resource_group" {
+}
+
+
+
 
 
 

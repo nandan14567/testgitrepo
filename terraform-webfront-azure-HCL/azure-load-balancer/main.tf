@@ -24,7 +24,12 @@ data "azurerm_subnet" "del_subnet" {
   virtual_network_name = data.azurerm_virtual_network.del_vnet.name
 
 }
-
+#-------------------------------------------using golden image-------------------------------------------------------------
+data "azurerm_shared_image" "existing" {
+  name                = var.golden_image_name
+  gallery_name        = var.img_gallery_name
+  resource_group_name = var.img_resource_group
+}
 #------------------------------------------creating load balancer----------------------------------------------------------
 resource "azurerm_lb" "del_lb" {
   name                = "${var.prefix}-lb"
@@ -257,12 +262,18 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
   # this line to delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
 
+  # using custom golden image
   storage_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "${var.server_version}-Datacenter"
-    version   = "latest"
+    id = data.azurerm_shared_image.existing.id
   }
+
+  #using azure marketplace image
+  # storage_image_reference {
+  #   publisher = "MicrosoftWindowsServer"
+  #   offer     = "WindowsServer"
+  #   sku       = "${var.server_version}-Datacenter"
+  #   version   = "latest"
+  # }
 
   storage_os_disk {
     name              = "${data.external.servernaming.result[count.index]}-disk"
