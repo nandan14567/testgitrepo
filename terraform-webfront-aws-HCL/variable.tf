@@ -2,16 +2,9 @@ variable "region" {
   description = "AWS region for hosting your network"
 }
 variable "lb_name" {
-  
 }
-variable "ec2_subnet_id" {
-  
+variable "ec2_subnet_id" {  
 }
-
-variable "SecurityGroup_Puppet" {
-  
-}
-
 variable "access_key"{
 }
 variable "secret_key"{
@@ -25,7 +18,6 @@ variable "vpc_id" {
 variable "ami_id" {
   #ami-01652280c5135f94b -- windows
   #ami-07ebfd5b3428b6f4d -- linux
-
 }
 variable "instance_type" {
 }
@@ -47,18 +39,12 @@ variable "key_name" {
 }
 
 //Variables for Puppet Payload
-variable "AccountID_Puppet" {
-}
-variable "ResourceLocation_Puppet" {
-}
-variable "Domain_Puppet" {
-}
-variable "Environment_Puppet"{
-}
-variable "Provider_Puppet"{
-}
-variable "OperatingSystem_Puppet"{
-}
+variable "AccountID_Puppet" {}
+variable "ResourceLocation_Puppet" {}
+variable "Domain_Puppet" {}
+variable "Environment_Puppet"{}
+variable "Provider_Puppet"{}
+variable "OperatingSystem_Puppet"{}
 
 //Variables for Servernaming Payload
 variable "environment_servernaming" {}
@@ -70,4 +56,5 @@ variable "client_id"{}
 variable "client_secret"{}
 variable "resource"{}
 
-
+//Variable for Security Group Yaml File
+variable "SecurityGroup_Administrators" {}

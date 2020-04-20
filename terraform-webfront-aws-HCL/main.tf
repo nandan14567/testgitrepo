@@ -47,7 +47,7 @@ module "application_load_balancer" {
   target_group                 = var.target_group
   instance_profile             = var.instance_profile
   lb_name                      = var.lb_name
-  ec2_subnet_id                 = var.ec2_subnet_id
+  ec2_subnet_id                = var.ec2_subnet_id
   instance_names               = data.external.servernaming.result
   instance_security_group      = [module.instance_security_group.Security_Group_Id]
   instance_security_group_name = [module.instance_security_group.Security_Group_Name]
@@ -58,12 +58,12 @@ module "application_load_balancer" {
   Environment                  = var.Environment_Puppet
   Provider                     = var.Provider_Puppet
   OperatingSystem              = var.OperatingSystem_Puppet
-  SecurityGroup                = var.SecurityGroup_Puppet
   instance_role                = var.instance_role
   key_name                     = var.key_name
   client_id                    = var.client_id
   client_secret                = var.client_secret
   resource                     = var.resource
+  SecurityGroup_Administrators = var.SecurityGroup_Administrators
 }
 
  terraform {

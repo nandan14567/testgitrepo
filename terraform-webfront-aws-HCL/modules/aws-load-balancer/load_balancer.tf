@@ -9,12 +9,13 @@ resource "aws_lb" "del_load_balancer" {
     DCR: "AWS-WEBFALB0002-0.0.1"
   }
 }
-#Getting subnets 
+
+# Getting subnets 
 data "aws_subnet_ids" "del_subnet_ids" {
   vpc_id = var.vpc_id
 }
 
-#creating target group
+# Target group
 resource "aws_lb_target_group" "del_target_group" {
   name     = lookup(var.target_group, "name", null)
   port     = lookup(var.target_group, "backend_port", null)
@@ -25,7 +26,7 @@ resource "aws_lb_target_group" "del_target_group" {
   }
 }
 
-#Listeners for LB
+# Listeners for LB
 resource "aws_lb_listener" "del_frontend_http_tcp" {
   count             = true ? length(var.http_tcp_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
@@ -37,7 +38,7 @@ resource "aws_lb_listener" "del_frontend_http_tcp" {
   }
 }
 
-#Listeners for LB
+# Listeners for LB
 resource "aws_lb_listener" "del_frontend_https" {
   count             = true ? length(var.https_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
@@ -51,13 +52,36 @@ resource "aws_lb_listener" "del_frontend_https" {
   }
 }
 
-//Local File for Windows user Data
-resource "local_file" "windows_userdata" {
+#  Data null for linux_userdata
+data "null_data_source" "userdata_linux" {
+  count = var.OperatingSystem=="linux"?var.ec2-count:0
+   inputs    = {
+    linux_userdata=<<-EOF
+    #!/bin/bash
+    mkdir -p /etc/puppetlabs/facter/facts.d
+    echo ' {"elevated_groups": {"sudo_groups":${jsonencode(split(",", var.SecurityGroup_Administrators))}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+    echo "Hello, World" > index.html
+    sudo apt update
+    sudo apt install apache2 --assume-yes
+    sudo hostnamectl set-hostname ${var.instance_names[count.index]}
+    echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
+    echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
+    sudo a2enmod ssl
+    sudo a2ensite default-ssl
+    sudo /etc/init.d/apache2 restart
+    reboot
+    EOF
+   }
+}
+
+#Data null for windows userdata
+data "null_data_source" "userdata_windows" {
   count = var.OperatingSystem=="windows"?var.ec2-count:0
-  content    = <<-EOF
+  inputs = {
+    windows_userdata=<<-EOF
     <script>
      mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
-     echo {"elevated_groups": {"Administrators":["us\\SG-US-868978391936-Admin","us\\SG-US-197151468794-Admin"]}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
+     echo {"elevated_groups": {"Administrators":${jsonencode(split(",", var.SecurityGroup_Administrators))}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
      wmic computersystem where name="%COMPUTERNAME%" call rename name="${var.instance_names[count.index]}"
     </script>
     <powershell> 
@@ -74,33 +98,11 @@ resource "local_file" "windows_userdata" {
       Restart-Computer
     </powershell>
     EOF
-    filename   = "${path.root}/user_data.txt"
+  }
 }
 
-// local file for linux_userdata
-resource "local_file" "linux_userdata" {
-  count = var.OperatingSystem=="linux"?var.ec2-count:0
-  content    = <<-EOF
-    #!/bin/bash
-    mkdir -p /etc/puppetlabs/facter/facts.d
-    echo {"elevated_groups": {"sudo_groups": ["%sg-us-197151468794-admin","%sg-us-868978391936-admin"],"access_groups": ["sg-us-197151468794-admin","sg-us-868978391936-admin"]}}>/etc/puppetlabs/facter/facts.d/elevated_groups.json
-    echo "Hello, World" > index.html
-    sudo apt update
-    sudo apt install apache2 --assume-yes
-    sudo hostnamectl set-hostname ${var.instance_names[count.index]}
-    echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
-    echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
-    sudo a2enmod ssl
-    sudo a2ensite default-ssl
-    sudo /etc/init.d/apache2 restart
-    reboot
-    EOF
-    filename   = "${path.root}/user_data.txt"
-}
-
-#EC2 Instances For LB
+# EC2 Instances For LB
 resource "aws_instance" "my-instance" {
-  depends_on=[local_file.linux_userdata,local_file.windows_userdata]
   count                  = var.ec2-count
   ami                    = var.ami_id
   instance_type          = var.instance_type
@@ -112,10 +114,10 @@ resource "aws_instance" "my-instance" {
     DCR: "AWS-WEBFALB0002-0.0.1"
     Name = var.instance_names[count.index]
   }
-  user_data = var.OperatingSystem == "windows" ? local_file.windows_userdata[count.index].content : local_file.linux_userdata[count.index].content
-  }
+  user_data = var.OperatingSystem == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
+}
 
-#EC2 Instance Linking with Target Group
+# EC2 Instance Linking with Target Group
 resource "aws_lb_target_group_attachment" "test" {
   count            = var.ec2-count
   target_group_arn = aws_lb_target_group.del_target_group.arn
@@ -146,8 +148,7 @@ resource "local_file" "terraform_tf" {
       "ResourceIdentifier":"${aws_instance.my-instance[count.index].id}",
       "Environment":  "${var.Environment}",
       "Provider":  "${var.Provider}",
-      "OperatingSystem":  "${var.OperatingSystem}",
-      "SecurityGroup": "${var.SecurityGroup}"
+      "OperatingSystem":  "${var.OperatingSystem}"
   }
   EOF
   filename   = "${path.root}/temppayload${count.index}.json"
@@ -161,7 +162,7 @@ resource "null_resource" "test-api3" {
     values = "${aws_instance.my-instance[count.index].id}"
   }
   provisioner "local-exec" {
-    command     = "Start-Sleep -s 300"
+    command     = "Start-Sleep -s 210"
     interpreter = ["PowerShell", "-Command"]
   }
   provisioner "local-exec" {
