@@ -162,7 +162,7 @@ resource "null_resource" "test-api3" {
     values = "${aws_instance.my-instance[count.index].id}"
   }
   provisioner "local-exec" {
-    command     = "Start-Sleep -s 210"
+    command     = "Start-Sleep -s 250"
     interpreter = ["PowerShell", "-Command"]
   }
   provisioner "local-exec" {
