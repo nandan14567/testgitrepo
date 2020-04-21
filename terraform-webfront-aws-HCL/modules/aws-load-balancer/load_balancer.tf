@@ -10,7 +10,7 @@ resource "aws_lb" "del_load_balancer" {
   }
 }
 
-# Getting subnets 
+#Getting subnets 
 data "aws_subnet_ids" "del_subnet_ids" {
   vpc_id = var.vpc_id
 }
