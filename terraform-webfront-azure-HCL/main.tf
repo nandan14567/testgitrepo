@@ -18,10 +18,14 @@ module "azure-load-balancer-module" {
   location            = var.location
   resource_group      = var.resource_group
   vm_count            = var.vm_count
-  lb_port             = var.lb_port
-  frontend_name       = var.frontend_name
-  prefix              = var.prefix
-  ad_sg_names         = var.ad_sg_names
+
+  lb_port            = var.lb_port
+  frontend_name      = var.frontend_name
+  prefix             = var.prefix
+  ad_sg_names        = var.ad_sg_names
+  golden_image_name  = var.golden_image_name
+  img_gallery_name   = var.img_gallery_name
+  img_resource_group = var.img_resource_group
 
   subscription_id    = var.subscription_id
   Domain             = var.domain
