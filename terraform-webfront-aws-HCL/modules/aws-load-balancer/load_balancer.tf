@@ -1,12 +1,21 @@
+#Creating security group for load balancer
+module "alb_security_group" {
+  source              = "./security-group"
+  security_group_name = "${var.recipe_name}-alb_security_group"
+  tcp_ports           = "443"
+  cidrs               = var.lb_security_group["cidrs"]
+  vpc_id              = var.vpc_id
+}
+
 # Creating application LB
 resource "aws_lb" "del_load_balancer" {
-  name               = var.lb_name
+  name               = "${var.recipe_name}-ALB"
   load_balancer_type = "application"
-  security_groups    = var.aws_lb_security_group
+  security_groups    = [module.alb_security_group.Security_Group_Id]
   subnets            = data.aws_subnet_ids.del_subnet_ids.ids
   internal           = true
-  tags = {
-    DCR : "AWS-WEBFALB0002-0.0.1"
+  tags               = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
   }
 }
 
@@ -17,24 +26,12 @@ data "aws_subnet_ids" "del_subnet_ids" {
 
 # Target group
 resource "aws_lb_target_group" "del_target_group" {
-  name     = lookup(var.target_group, "name", null)
-  port     = lookup(var.target_group, "backend_port", null)
-  protocol = lookup(var.target_group, "backend_protocol", null) != null ? upper(lookup(var.target_group, "backend_protocol")) : null
+  name     = "${var.recipe_name}-tgroup"
+  port     = "443"
+  protocol = "HTTPS"
   vpc_id   = data.aws_subnet_ids.del_subnet_ids.vpc_id
-  tags = {
-    DCR : "AWS-WEBFALB0002-0.0.1"
-  }
-}
-
-# Listeners for LB
-resource "aws_lb_listener" "del_frontend_http_tcp" {
-  count             = true ? length(var.http_tcp_listeners) : 0
-  load_balancer_arn = aws_lb.del_load_balancer.arn
-  port              = var.http_tcp_listeners[count.index]["port"]
-  protocol          = var.http_tcp_listeners[count.index]["protocol"]
-  default_action {
-    target_group_arn = aws_lb_target_group.del_target_group.arn
-    type             = "forward"
+  tags     = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
   }
 }
 
@@ -42,10 +39,10 @@ resource "aws_lb_listener" "del_frontend_http_tcp" {
 resource "aws_lb_listener" "del_frontend_https" {
   count             = true ? length(var.https_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
-  port              = var.https_listeners[count.index]["port"]
-  protocol          = lookup(var.https_listeners[count.index], "protocol", "HTTPS")
+  port              = 443
+  protocol          = "HTTPS"
   certificate_arn   = var.https_listeners[count.index]["certificate_arn"]
-  ssl_policy        = lookup(var.https_listeners[count.index], "ssl_policy", var.listener_ssl_policy_default)
+  ssl_policy        = var.https_listeners[count.index]["ssl_policy"]
   default_action {
     target_group_arn = aws_lb_target_group.del_target_group.arn
     type             = "forward"
@@ -54,35 +51,35 @@ resource "aws_lb_listener" "del_frontend_https" {
 
 #  Data null for linux_userdata
 data "null_data_source" "userdata_linux" {
-  count = var.OperatingSystem == "linux" ? var.ec2-count : 0
-  inputs = {
-    linux_userdata = <<-EOF
+  count = var.puppet["OperatingSystem"]=="linux"?var.ec2-count:0
+   inputs    = {
+    linux_userdata=<<-EOF
     #!/bin/bash
     mkdir -p /etc/puppetlabs/facter/facts.d
-    echo ' {"elevated_groups": {"sudo_groups":${jsonencode(split(",", var.SecurityGroup_Administrators))}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+    echo '{"elevated_groups": {"sudo_groups":${jsonencode(var.SecurityGroup_Administrators)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
     echo "Hello, World" > index.html
     sudo apt update
     sudo apt install apache2 --assume-yes
-    sudo hostnamectl set-hostname ${var.instance_names[count.index]}
-    echo -e "127.0.0.1 ${var.instance_names[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
+    sudo hostnamectl set-hostname ${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}
+    echo -e "127.0.0.1 ${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]} localhost.localdomain localhost\n10.28.188.91 uspup-cm.us.deloitte.com" > /etc/hosts
     echo "perserve_hostname:true" >> /etc/cloud/cloud.cfg
     sudo a2enmod ssl
     sudo a2ensite default-ssl
     sudo /etc/init.d/apache2 restart
     reboot
     EOF
-  }
+   }
 }
 
 #Data null for windows userdata
 data "null_data_source" "userdata_windows" {
-  count = var.OperatingSystem == "windows" ? var.ec2-count : 0
+  count = var.puppet["OperatingSystem"]=="windows"?var.ec2-count:0
   inputs = {
-    windows_userdata = <<-EOF
+    windows_userdata=<<-EOF
     <script>
      mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
-     echo {"elevated_groups": {"Administrators":${jsonencode(split(",", var.SecurityGroup_Administrators))}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
-     wmic computersystem where name="%COMPUTERNAME%" call rename name="${var.instance_names[count.index]}"
+     echo {"elevated_groups": {"Administrators":${jsonencode(var.SecurityGroup_Administrators)}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
+     wmic computersystem where name="%COMPUTERNAME%" call rename name="${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}"
     </script>
     <powershell> 
       Start-Transcript; 
@@ -101,55 +98,96 @@ data "null_data_source" "userdata_windows" {
   }
 }
 
+#Calling Servernaming API
+data "restapi" "servernaming"{
+  uri = "https://onecloudapi.deloitte.com/servernaming/20190215/ServerNaming"
+  method= "POST"
+  request_body=jsonencode(var.servernaming)
+  request_headers = {
+    Content-Type = "application/json"
+  }
+}
+
+#Creating security group for ec2 instances
+module "instance_security_group" {
+  source              = "./security-group"
+  security_group_name = "${var.recipe_name}-ec2_security_group"
+  tcp_ports           = var.ec2_security_group["ports"]
+  cidrs               = var.ec2_security_group["cidrs"]
+  vpc_id              = var.vpc_id
+}
+
 # EC2 Instances For LB
-resource "aws_instance" "my-instance" {
+resource "aws_instance" "aws-instance" {
   count                  = var.ec2-count
   ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = var.ec2_subnet_id
   key_name               = var.key_name
-  vpc_security_group_ids = var.instance_security_group
+  vpc_security_group_ids = [module.instance_security_group.Security_Group_Id]
   iam_instance_profile   = var.instance_role
-  tags = {
-    DCR : "AWS-WEBFALB0002-0.0.1"
-    Name = var.instance_names[count.index]
+  tags                   = {
+    DCR: "AWS-WEBFALB0002-0.0.1"
+    Name = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
   }
-  user_data = var.OperatingSystem == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
-  provisioner "local-exec" {
-    command     = "Start-Sleep -s 240"
-    interpreter = ["PowerShell", "-Command"]
-  }
+  user_data = var.puppet["OperatingSystem"] == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
 }
 
 # EC2 Instance Linking with Target Group
 resource "aws_lb_target_group_attachment" "test" {
   count            = var.ec2-count
   target_group_arn = aws_lb_target_group.del_target_group.arn
-  target_id        = aws_instance.my-instance[count.index].id
+  target_id        = aws_instance.aws-instance[count.index].id
 }
 
-//Token Generation API 
-data "tokenapi" "token" {
-  uri           = "https://login.microsoftonline.com/36da45f1-dd2c-4d1f-af13-5abe46b99921/oauth2/token"
-  client_id     = var.client_id
-  client_secret = var.client_secret
-  grant_type    = "client_credentials"
-  resource      = var.resource
+//Data Token Generation API 
+data "restapi" "tokenapi"{
+  uri = "https://login.microsoftonline.com/36da45f1-dd2c-4d1f-af13-5abe46b99921/oauth2/token"
+  method= "POST"
+  request_body=<<-EOF
+  {
+     "grant_type":"${var.token["grant_type"]}",
+     "resource":"${var.token["resource"]}",
+     "client_id":"${var.client_id}",
+     "client_secret":"${var.client_secret}"
+  }
+  EOF
+   request_headers = {
+     Content-Type = "APplication/x-www-form-Urlencoded"
+   }
 }
 
-//Puppet installion api
-data "puppetapi" "example" {
-  depends_on = [aws_instance.my-instance]
-  count              = var.ec2-count
-  uri                = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
-  accountid          = var.AccountID
-  resourcelocation   = var.ResourceLocation
-  domain             = var.Domain
-  resourceidentifier = aws_instance.my-instance[count.index].id
-  environment        = var.Environment
-  providertype       = var.Provider
-  operatingsystem    = var.OperatingSystem
-  securitygroup      = "sg-us-868978391936-admin"
-  token              = data.tokenapi.token.body
-
+// Waiting to get instance in ready state beore calling puppet api
+resource "null_resource" "wait_before_puppet_api_call" {
+  count      = var.ec2-count
+  depends_on = [aws_instance.aws-instance,aws_lb.del_load_balancer]
+  provisioner "local-exec" {
+    command     = "Start-Sleep -s 250"
+    interpreter = ["PowerShell", "-Command"]
+  }
+}
+//Data puppet installation api
+data "restapi" "puppet" {
+  count      = var.ec2-count
+  depends_on = [null_resource.wait_before_puppet_api_call]
+  uri = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  method= "POST"
+  request_body=<<-EOF
+  {
+        "AccountID":  "${var.puppet["AccountID"]}",
+        "ResourceLocation":  "${var.puppet["ResourceLocation"]}",
+        "Domain":  "${var.puppet["Domain"]}",
+        "ResourceIdentifier":"${aws_instance.aws-instance[count.index].id}",
+        "Environment": "${var.puppet["Environment"]}",
+        "Provider":  "${var.puppet["Provider"]}",
+        "OperatingSystem":  "${var.puppet["OperatingSystem"]}"
+  }
+  EOF
+  request_headers = {
+    Authorization =jsondecode(data.restapi.tokenapi.body).access_token
+    Content-Type = "application/json"
+  }
+}
+output "puppet_response" {
+  value = [data.restapi.puppet.*.body]
 }
