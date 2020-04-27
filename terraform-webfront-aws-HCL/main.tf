@@ -23,15 +23,14 @@ module "alb_security_group" {
   vpc_id              = var.vpc_id
 }
 
-#Calling Servernaming API
-data "external" "servernaming" {
-  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
-  query = {
-    numberServers = var.ec2-count
-    environment   = var.environment_servernaming
-    system        = var.system_servernaming
-    componentKey  = var.componentKey_servernaming
-  }
+#Calling Servernaming API using custom provider
+data "servernamingapi" "servernaming" {
+  uri = "https://onecloudapi.deloitte.com/servernaming/20190215/ServerNaming"
+  environment= var.environment_servernaming
+	system= var.system_servernaming
+  componentkey=var.componentKey_servernaming
+  numberservers=var.ec2-count
+  
 }
 
 #creating internal application load balancer
@@ -48,12 +47,12 @@ module "application_load_balancer" {
   instance_profile             = var.instance_profile
   lb_name                      = var.lb_name
   ec2_subnet_id                = var.ec2_subnet_id
-  instance_names               = data.external.servernaming.result
+  instance_names               = jsondecode(data.servernamingapi.servernaming.body).components[0].servers
   instance_security_group      = [module.instance_security_group.Security_Group_Id]
   instance_security_group_name = [module.instance_security_group.Security_Group_Name]
   aws_lb_security_group        = [module.alb_security_group.Security_Group_Id]
   AccountID                    = var.AccountID_Puppet
-  ResourceLocation             = var.ResourceLocation_Puppet
+  ResourceLocation             = var.region
   Domain                       = var.Domain_Puppet
   Environment                  = var.Environment_Puppet
   Provider                     = var.Provider_Puppet
@@ -66,6 +65,6 @@ module "application_load_balancer" {
   SecurityGroup_Administrators = var.SecurityGroup_Administrators
 }
 
- terraform {
-     backend "azurerm" {}
- }
+#  terraform {
+#      backend "azurerm" {}
+#  }

@@ -81,49 +81,44 @@ resource "azurerm_lb_rule" "del_lb_rule" {
 }
 
 #----------------------------------------------------------------Generate Server names---------------------------------------
-data "external" "servernaming" {
-  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
-  query = {
-    numberServers = var.vm_count
-    environment   = var.environment_sn
-    system        = var.system_sn
-    componentKey  = var.componentKey_sn
-  }
-}
-# output "servernames" {
-#   value = "${data.external.servernaming.result}"
-# }
 
+data "servernamingapi" "servernaming" {
+  uri           = "https://onecloudapi.deloitte.com/servernaming/20190215/ServerNaming"
+  environment   = var.environment_sn
+  system        = var.system_sn
+  componentkey  = var.componentKey_sn
+  numberservers = var.vm_count
+
+}
 #-------------------------------------------------------Generate Token Here-----------------------------------------------------
-resource "null_resource" "test-api1" {
-  #count      = "${var.vm_count}"
-  triggers = {
-    values = "${data.external.servernaming.result[0]}"
-  }
-  provisioner "local-exec" {
-    //get token using single payload
-    command     = "${path.module}/Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-    interpreter = ["PowerShell", "-Command"]
-  }
+
+data "tokenapi" "token" {
+  uri           = "https://login.microsoftonline.com/36da45f1-dd2c-4d1f-af13-5abe46b99921/oauth2/token"
+  client_id     = var.client_id
+  client_secret = var.client_secret
+  grant_type    = "client_credentials"
+  resource      = var.resource
 }
 
-#--------------------------------------------------------local file and null resource here-----------------------------------
-resource "local_file" "terraform_tf" {
-  count    = var.vm_count
-  content  = <<EOF
-     {
-     "AccountID":  "${var.subscription_id}",
-     "ResourceLocation":  "${var.resource_group}",
-     "Domain":  "${var.Domain}",
-     "ResourceIdentifier":  "${data.external.servernaming.result[count.index]}",
-     "Environment":  "${var.Environment_puppet}",
-     "Provider":  "${var.Provider_name}",
-     "OperatingSystem":  "${var.OperatingSystem}"
-  }
-     EOF
-  filename = "${path.root}/temppayload${count.index}.json"
+
+
+//Puppet installion api
+data "puppetapi" "puppet_linux" {
+  depends_on         = [azurerm_virtual_machine.del_linux_virtual_machine]
+  count              = var.OperatingSystem == "linux" ? var.vm_count : 0
+  uri                = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  accountid          = var.subscription_id
+  resourcelocation   = var.resource_group
+  domain             = var.Domain
+  resourceidentifier = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
+  environment        = var.Environment_puppet
+  providertype       = var.Provider_name
+  operatingsystem    = var.OperatingSystem
+  securitygroup      = "sg-us-868978391936-admin"
+  token              = data.tokenapi.token.body
 
 }
+
 #------------------------------------------pool association, NIC and availability set--------------------------------------------
 resource "azurerm_network_interface_backend_address_pool_association" "del_association_to_lb" {
   count                   = var.vm_count
@@ -134,7 +129,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "del_assoc
 
 resource "azurerm_network_interface" "del_network_interface" {
   count               = var.vm_count
-  name                = "${data.external.servernaming.result[count.index]}-nic"
+  name                = "${jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]}-nic"
   location            = var.location
   resource_group_name = var.resource_group
   ip_configuration {
@@ -173,7 +168,7 @@ data "null_data_source" "linux-values" {
 
 resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   count                 = var.OperatingSystem == "linux" ? var.vm_count : 0
-  name                  = data.external.servernaming.result[count.index]
+  name                  = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
   availability_set_id   = azurerm_availability_set.del_availability_set.id
@@ -194,7 +189,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   }
 
   storage_os_disk {
-    name              = "${data.external.servernaming.result[count.index]}-disk"
+    name              = "${jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]}-disk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -203,7 +198,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   }
 
   os_profile {
-    computer_name  = data.external.servernaming.result[count.index]
+    computer_name  = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
     custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
@@ -217,9 +212,9 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
     disable_password_authentication = false
   }
   //this is to call puppet installation API
-  provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
-  }
+  # provisioner "local-exec" {
+  #   command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  # }
 }
 
 #-------------------------------------------Custom data windows-----------------------------------------------------------------------
@@ -248,7 +243,7 @@ locals {
 # #-----------------------------------------Virtual machine windows--------------------------------------------------------------------
 resource "azurerm_virtual_machine" "del_virtual_machine" {
   count                 = var.OperatingSystem == "windows" ? var.vm_count : 0
-  name                  = data.external.servernaming.result[count.index]
+  name                  = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
   availability_set_id   = azurerm_availability_set.del_availability_set.id
@@ -276,7 +271,7 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
   # }
 
   storage_os_disk {
-    name              = "${data.external.servernaming.result[count.index]}-disk"
+    name              = "${jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]}-disk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -285,7 +280,7 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
   }
 
   os_profile {
-    computer_name  = data.external.servernaming.result[count.index]
+    computer_name  = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
 
@@ -303,7 +298,7 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
 
 resource "azurerm_virtual_machine_extension" "windows" {
   count                      = var.OperatingSystem == "windows" ? var.vm_count : 0
-  name                       = "${data.external.servernaming.result[count.index]}run-commands"
+  name                       = "${jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]}run-commands"
   virtual_machine_id         = azurerm_virtual_machine.del_virtual_machine[count.index].id
   publisher                  = "Microsoft.CPlat.Core"
   type                       = "RunCommandWindows"
@@ -312,39 +307,21 @@ resource "azurerm_virtual_machine_extension" "windows" {
   settings                   = jsonencode(local.command_windows)
 }
 
-#-----------------------------------puppet api call for windows machines-----------------------------------------
-resource "null_resource" "call-puppet-windows" {
-  count      = var.OperatingSystem == "windows" ? var.vm_count : 0
-  depends_on = [azurerm_virtual_machine.del_virtual_machine, azurerm_virtual_machine_extension.windows]
-  triggers = {
-    values = azurerm_virtual_machine_extension.windows[count.index].id
-  }
-  //this is to call puppet installation API
-  provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
-  }
+
+//Puppet installion api
+data "puppetapi" "puppet_windows" {
+  depends_on         = [azurerm_virtual_machine.del_virtual_machine, azurerm_virtual_machine_extension.windows]
+  count              = var.OperatingSystem == "windows" ? var.vm_count : 0
+  uri                = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  accountid          = var.subscription_id
+  resourcelocation   = var.resource_group
+  domain             = var.Domain
+  resourceidentifier = jsondecode(data.servernamingapi.servernaming.body).components[0].servers[count.index]
+  environment        = var.Environment_puppet
+  providertype       = var.Provider_name
+  operatingsystem    = var.OperatingSystem
+  securitygroup      = "sg-us-868978391936-admin"
+  token              = data.tokenapi.token.body
+
 }
-
-# ##########################################################
-## Install IIS on VM
-##########################################################
-
-# resource "azurerm_virtual_machine_extension" "iis" {
-#   count                = "${var.vm_count}"
-#   name                 = "install-iis"
-#   resource_group_name  = "${var.resource_group_name}"
-#   location             = "${var.location}"
-#   virtual_machine_name = "${element(azurerm_virtual_machine.main.*.name, count.index)}"
-#   publisher            = "Microsoft.Compute"
-#   type                 = "CustomScriptExtension"
-#   type_handler_version = "1.9"
-
-#   settings = <<SETTINGS
-#     { 
-#       "commandToExecute": "powershell Add-WindowsFeature Web-Asp-Net45;Add-WindowsFeature NET-Framework-45-Core;Add-WindowsFeature Web-Net-Ext45;Add-WindowsFeature Web-ISAPI-Ext;Add-WindowsFeature Web-ISAPI-Filter;Add-WindowsFeature Web-Mgmt-Console;Add-WindowsFeature Web-Scripting-Tools;Add-WindowsFeature Search-Service;Add-WindowsFeature Web-Filtering;Add-WindowsFeature Web-Basic-Auth;Add-WindowsFeature Web-Windows-Auth;Add-WindowsFeature Web-Default-Doc;Add-WindowsFeature Web-Http-Errors;Add-WindowsFeature Web-Static-Content;"
-#     } 
-# SETTINGS
-# }
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------
 

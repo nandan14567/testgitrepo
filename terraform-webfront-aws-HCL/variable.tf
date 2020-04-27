@@ -40,7 +40,7 @@ variable "key_name" {
 
 //Variables for Puppet Payload
 variable "AccountID_Puppet" {}
-variable "ResourceLocation_Puppet" {}
+//variable "ResourceLocation_Puppet" {}
 variable "Domain_Puppet" {}
 variable "Environment_Puppet"{}
 variable "Provider_Puppet"{}

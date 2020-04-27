@@ -40,9 +40,9 @@ module "azure-load-balancer-module" {
   server_version  = var.server_version
 }
 
-terraform {
-  backend "azurerm" {}
-}
+# terraform {
+#   backend "azurerm" {}
+# }
 
 
 

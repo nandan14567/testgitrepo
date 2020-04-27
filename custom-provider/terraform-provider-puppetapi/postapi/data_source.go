@@ -3,7 +3,7 @@ package postapi
 import (
 	// "fmt"
 	// "io/ioutil"
-	"fmt"
+
 	"io/ioutil"
 	"mime"
 
@@ -147,14 +147,16 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	data.ResourceIdentifier = resourceidentifier
 	data.Provider = provider
 	data.OperatingSystem = operatingsystem
-	data.SecurityGroup = securitygroup
+
+	if d.Get("securitygroup") != "" {
+		securitygroup = d.Get("securitygroup").(string)
+		data.SecurityGroup = securitygroup
+	}
 
 	bytesRepresentation, err := json.Marshal(data)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	fmt.Printf("%s", bytesRepresentation)
 
 	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(bytesRepresentation))
 	req.Header.Set("Content-Type", "application/json")
@@ -171,16 +173,11 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 		log.Println(err)
 	}
 
-	//result := ReqBody{}
-
-	//json.NewDecoder(resp.Body).Decode(&result)
-
 	resp.Body.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//d.Set("body", result)
 	d.Set("body", string(bytes))
 	d.SetId(time.Now().UTC().String())
 

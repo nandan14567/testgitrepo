@@ -5,8 +5,8 @@ resource "aws_lb" "del_load_balancer" {
   security_groups    = var.aws_lb_security_group
   subnets            = data.aws_subnet_ids.del_subnet_ids.ids
   internal           = true
-  tags               = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+  tags = {
+    DCR : "AWS-WEBFALB0002-0.0.1"
   }
 }
 
@@ -21,8 +21,8 @@ resource "aws_lb_target_group" "del_target_group" {
   port     = lookup(var.target_group, "backend_port", null)
   protocol = lookup(var.target_group, "backend_protocol", null) != null ? upper(lookup(var.target_group, "backend_protocol")) : null
   vpc_id   = data.aws_subnet_ids.del_subnet_ids.vpc_id
-  tags     = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+  tags = {
+    DCR : "AWS-WEBFALB0002-0.0.1"
   }
 }
 
@@ -54,9 +54,9 @@ resource "aws_lb_listener" "del_frontend_https" {
 
 #  Data null for linux_userdata
 data "null_data_source" "userdata_linux" {
-  count = var.OperatingSystem=="linux"?var.ec2-count:0
-   inputs    = {
-    linux_userdata=<<-EOF
+  count = var.OperatingSystem == "linux" ? var.ec2-count : 0
+  inputs = {
+    linux_userdata = <<-EOF
     #!/bin/bash
     mkdir -p /etc/puppetlabs/facter/facts.d
     echo ' {"elevated_groups": {"sudo_groups":${jsonencode(split(",", var.SecurityGroup_Administrators))}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
@@ -71,14 +71,14 @@ data "null_data_source" "userdata_linux" {
     sudo /etc/init.d/apache2 restart
     reboot
     EOF
-   }
+  }
 }
 
 #Data null for windows userdata
 data "null_data_source" "userdata_windows" {
-  count = var.OperatingSystem=="windows"?var.ec2-count:0
+  count = var.OperatingSystem == "windows" ? var.ec2-count : 0
   inputs = {
-    windows_userdata=<<-EOF
+    windows_userdata = <<-EOF
     <script>
      mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
      echo {"elevated_groups": {"Administrators":${jsonencode(split(",", var.SecurityGroup_Administrators))}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
@@ -110,11 +110,15 @@ resource "aws_instance" "my-instance" {
   key_name               = var.key_name
   vpc_security_group_ids = var.instance_security_group
   iam_instance_profile   = var.instance_role
-  tags                   = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+  tags = {
+    DCR : "AWS-WEBFALB0002-0.0.1"
     Name = var.instance_names[count.index]
   }
   user_data = var.OperatingSystem == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
+  provisioner "local-exec" {
+    command     = "Start-Sleep -s 240"
+    interpreter = ["PowerShell", "-Command"]
+  }
 }
 
 # EC2 Instance Linking with Target Group
@@ -125,47 +129,27 @@ resource "aws_lb_target_group_attachment" "test" {
 }
 
 //Token Generation API 
-resource "null_resource" "test-api1" {
-  triggers = {
-    values = "${aws_instance.my-instance[0].id}"
-  }
-  //this is to get token
-  provisioner "local-exec" {
-    command     = "./Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-    interpreter = ["PowerShell", "-Command"]
-  }
+data "tokenapi" "token" {
+  uri           = "https://login.microsoftonline.com/36da45f1-dd2c-4d1f-af13-5abe46b99921/oauth2/token"
+  client_id     = var.client_id
+  client_secret = var.client_secret
+  grant_type    = "client_credentials"
+  resource      = var.resource
 }
 
-//Puppet installation api Payload Creation
-resource "local_file" "terraform_tf" {
-  count      = var.ec2-count
-  depends_on = ["aws_instance.my-instance", "aws_lb.del_load_balancer", "aws_lb_target_group.del_target_group", "aws_lb_listener.del_frontend_http_tcp", "aws_lb_listener.del_frontend_https"]
-  content    = <<-EOF
-  {
-      "AccountID":  "${var.AccountID}",
-      "ResourceLocation":  "${var.ResourceLocation}",
-      "Domain":  "${var.Domain}",
-      "ResourceIdentifier":"${aws_instance.my-instance[count.index].id}",
-      "Environment":  "${var.Environment}",
-      "Provider":  "${var.Provider}",
-      "OperatingSystem":  "${var.OperatingSystem}"
-  }
-  EOF
-  filename   = "${path.root}/temppayload${count.index}.json"
-}
+//Puppet installion api
+data "puppetapi" "example" {
+  depends_on = [aws_instance.my-instance]
+  count              = var.ec2-count
+  uri                = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+  accountid          = var.AccountID
+  resourcelocation   = var.ResourceLocation
+  domain             = var.Domain
+  resourceidentifier = aws_instance.my-instance[count.index].id
+  environment        = var.Environment
+  providertype       = var.Provider
+  operatingsystem    = var.OperatingSystem
+  securitygroup      = "sg-us-868978391936-admin"
+  token              = data.tokenapi.token.body
 
-//puppet installation api
-resource "null_resource" "test-api3" {
-  count      = var.ec2-count
-  depends_on = ["local_file.terraform_tf", "aws_instance.my-instance", "aws_lb.del_load_balancer", "aws_lb_target_group.del_target_group", "aws_lb_listener.del_frontend_http_tcp", "aws_lb_listener.del_frontend_https"]
-  triggers = {
-    values = "${aws_instance.my-instance[count.index].id}"
-  }
-  provisioner "local-exec" {
-    command     = "Start-Sleep -s 250"
-    interpreter = ["PowerShell", "-Command"]
-  }
-  provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
-  }
 }
