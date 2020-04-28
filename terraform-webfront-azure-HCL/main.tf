@@ -38,9 +38,9 @@ output "puppet_response" {
   value = module.azure-load-balancer-module.puppet_response
 }
 
-# terraform {
-#   backend "azurerm" {}
-# }
+terraform {
+  backend "azurerm" {}
+}
 
 
 
