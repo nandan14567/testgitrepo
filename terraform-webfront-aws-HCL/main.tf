@@ -8,23 +8,28 @@ provider "aws" {
 #creating internal application load balancer
 module "application_load_balancer" {
   source                       = "./modules/aws-load-balancer"
+  region                       = var.region
   recipe_name                  = var.recipe_name
-  ami_id                       = var.ami_id
+  recipe_cidrs                 = var.recipe_cidrs
+  instance_count               = var.instance_count
+  instance_ports               = var.instance_ports
   vpc_id                       = var.vpc_id
+  instance_subnet_id           = var.instance_subnet_id
+  ami_id                       = var.ami_id
   instance_type                = var.instance_type
-  ec2-count                    = var.ec2-count
-  https_listeners              = var.https_listeners
-  ec2_subnet_id                = var.ec2_subnet_id
   instance_role                = var.instance_role
   key_name                     = var.key_name
-  token                        = var.token 
+  certificate_arn              = var.certificate_arn
+  ssl_policy                   = var.ssl_policy
+  resource_token               = var.resource_token 
   client_id                    = var.client_id
   client_secret                = var.client_secret
-  puppet                       = var.puppet
+  accountid_puppet             = var.accountid_puppet
+  domain_puppet                = var.domain_puppet
+  environment_puppet           = var.environment_puppet
+  operatingsystem              = var.operatingsystem
   servernaming                 = var.servernaming
-  ec2_security_group           = var.ec2_security_group
-  lb_security_group           = var.lb_security_group
-  SecurityGroup_Administrators = var.SecurityGroup_Administrators
+  securitygroup_administrators = var.securitygroup_administrators
 }
 
 output "puppet_response" {

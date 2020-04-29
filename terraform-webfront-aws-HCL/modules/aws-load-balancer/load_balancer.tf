@@ -1,9 +1,9 @@
 #Creating security group for load balancer
 module "alb_security_group" {
-  source              = "./security-group"
+  source              = "../security-group"
   security_group_name = "${var.recipe_name}-alb_security_group"
-  tcp_ports           = "443"
-  cidrs               = var.lb_security_group["cidrs"]
+  tcp_ports           = ["443"]
+  cidrs               = var.recipe_cidrs
   vpc_id              = var.vpc_id
 }
 
@@ -37,12 +37,11 @@ resource "aws_lb_target_group" "del_target_group" {
 
 # Listeners for LB
 resource "aws_lb_listener" "del_frontend_https" {
-  count             = true ? length(var.https_listeners) : 0
   load_balancer_arn = aws_lb.del_load_balancer.arn
   port              = 443
   protocol          = "HTTPS"
-  certificate_arn   = var.https_listeners[count.index]["certificate_arn"]
-  ssl_policy        = var.https_listeners[count.index]["ssl_policy"]
+  certificate_arn   = var.certificate_arn
+  ssl_policy        = var.ssl_policy
   default_action {
     target_group_arn = aws_lb_target_group.del_target_group.arn
     type             = "forward"
@@ -51,12 +50,12 @@ resource "aws_lb_listener" "del_frontend_https" {
 
 #  Data null for linux_userdata
 data "null_data_source" "userdata_linux" {
-  count = var.puppet["OperatingSystem"]=="linux"?var.ec2-count:0
+  count = var.operatingsystem=="linux"?var.instance_count:0
    inputs    = {
     linux_userdata=<<-EOF
     #!/bin/bash
     mkdir -p /etc/puppetlabs/facter/facts.d
-    echo '{"elevated_groups": {"sudo_groups":${jsonencode(var.SecurityGroup_Administrators)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+    echo '{"elevated_groups": {"sudo_groups":${jsonencode(var.securitygroup_administrators)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
     echo "Hello, World" > index.html
     sudo apt update
     sudo apt install apache2 --assume-yes
@@ -73,12 +72,12 @@ data "null_data_source" "userdata_linux" {
 
 #Data null for windows userdata
 data "null_data_source" "userdata_windows" {
-  count = var.puppet["OperatingSystem"]=="windows"?var.ec2-count:0
+  count = var.operatingsystem=="windows"?var.instance_count:0
   inputs = {
     windows_userdata=<<-EOF
     <script>
      mkdir  C:\ProgramData\PuppetLabs\facter\facts.d 
-     echo {"elevated_groups": {"Administrators":${jsonencode(var.SecurityGroup_Administrators)}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
+     echo {"elevated_groups": {"Administrators":${jsonencode(var.securitygroup_administrators)}}} > C:\ProgramData\PuppetLabs\facter\facts.d\elevated_group.json
      wmic computersystem where name="%COMPUTERNAME%" call rename name="${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}"
     </script>
     <powershell> 
@@ -110,19 +109,19 @@ data "restapi" "servernaming"{
 
 #Creating security group for ec2 instances
 module "instance_security_group" {
-  source              = "./security-group"
+  source              = "../security-group"
   security_group_name = "${var.recipe_name}-ec2_security_group"
-  tcp_ports           = var.ec2_security_group["ports"]
-  cidrs               = var.ec2_security_group["cidrs"]
+  tcp_ports           = var.instance_ports
+  cidrs               = var.recipe_cidrs
   vpc_id              = var.vpc_id
 }
 
 # EC2 Instances For LB
 resource "aws_instance" "aws-instance" {
-  count                  = var.ec2-count
+  count                  = var.instance_count
   ami                    = var.ami_id
   instance_type          = var.instance_type
-  subnet_id              = var.ec2_subnet_id
+  subnet_id              = var.instance_subnet_id
   key_name               = var.key_name
   vpc_security_group_ids = [module.instance_security_group.Security_Group_Id]
   iam_instance_profile   = var.instance_role
@@ -130,12 +129,12 @@ resource "aws_instance" "aws-instance" {
     DCR: "AWS-WEBFALB0002-0.0.1"
     Name = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
   }
-  user_data = var.puppet["OperatingSystem"] == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
+  user_data = var.operatingsystem == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
 }
 
 # EC2 Instance Linking with Target Group
 resource "aws_lb_target_group_attachment" "test" {
-  count            = var.ec2-count
+  count            = var.instance_count
   target_group_arn = aws_lb_target_group.del_target_group.arn
   target_id        = aws_instance.aws-instance[count.index].id
 }
@@ -146,20 +145,19 @@ data "restapi" "tokenapi"{
   method= "POST"
   request_body=<<-EOF
   {
-     "grant_type":"${var.token["grant_type"]}",
-     "resource":"${var.token["resource"]}",
+     "grant_type":"client_credentials",
+     "resource":"${var.resource_token}",
      "client_id":"${var.client_id}",
      "client_secret":"${var.client_secret}"
   }
   EOF
    request_headers = {
-     Content-Type = "APplication/x-www-form-Urlencoded"
+     Content-Type = "Application/x-www-form-Urlencoded"
    }
 }
 
 // Waiting to get instance in ready state beore calling puppet api
 resource "null_resource" "wait_before_puppet_api_call" {
-  count      = var.ec2-count
   depends_on = [aws_instance.aws-instance,aws_lb.del_load_balancer]
   provisioner "local-exec" {
     command     = "Start-Sleep -s 250"
@@ -168,19 +166,19 @@ resource "null_resource" "wait_before_puppet_api_call" {
 }
 //Data puppet installation api
 data "restapi" "puppet" {
-  count      = var.ec2-count
+  count      = var.instance_count
   depends_on = [null_resource.wait_before_puppet_api_call]
   uri = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   method= "POST"
   request_body=<<-EOF
   {
-        "AccountID":  "${var.puppet["AccountID"]}",
-        "ResourceLocation":  "${var.puppet["ResourceLocation"]}",
-        "Domain":  "${var.puppet["Domain"]}",
+        "AccountID":  "${var.accountid_puppet}",
+        "ResourceLocation":  "${var.region}",
+        "Domain":  "${var.domain_puppet}",
         "ResourceIdentifier":"${aws_instance.aws-instance[count.index].id}",
-        "Environment": "${var.puppet["Environment"]}",
-        "Provider":  "${var.puppet["Provider"]}",
-        "OperatingSystem":  "${var.puppet["OperatingSystem"]}"
+        "Environment": "${var.environment_puppet}",
+        "Provider":  "aws",
+        "OperatingSystem": "${var.operatingsystem}"
   }
   EOF
   request_headers = {
