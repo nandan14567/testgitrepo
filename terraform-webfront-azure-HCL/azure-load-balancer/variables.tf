@@ -23,9 +23,9 @@ variable "remote_port" {
   default = { ssh = ["Tcp", "22"] }
 }
 variable "lb_port" {
-  #  default={ http  = ["80", "Tcp", "80"]
-  #    https = ["443", "Tcp", "443"]
-  #  }
+  default = {
+    https = ["443", "Tcp", "443"]
+  }
 }
 variable "subscription_id" {
 }

@@ -23,11 +23,6 @@ variable "client_secret" {
 variable "resource" {
 }
 
-variable "lb_port" {
-  #  default={ http  = ["80", "Tcp", "80"]
-  #    https = ["443", "Tcp", "443"]
-  #  }
-}
 variable "domain" {
 }
 variable "environment_puppet" {

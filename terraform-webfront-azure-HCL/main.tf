@@ -27,7 +27,6 @@ module "azure-load-balancer-module" {
   marketplace_image = var.marketplace_image
   custom_image      = var.custom_image
 
-  lb_port            = var.lb_port
   frontend_name      = var.frontend_name
   domain             = var.domain
   environment_puppet = var.environment_puppet
@@ -38,9 +37,9 @@ output "puppet_response" {
   value = module.azure-load-balancer-module.puppet_response
 }
 
-terraform {
-  backend "azurerm" {}
-}
+# terraform {
+#   backend "azurerm" {}
+# }
 
 
 
