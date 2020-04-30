@@ -15,7 +15,7 @@ resource "aws_lb" "del_load_balancer" {
   subnets            = data.aws_subnet_ids.del_subnet_ids.ids
   internal           = true
   tags               = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+    DCR: "AWS-WEBFALB0002-0.0.2"
   }
 }
 
@@ -31,7 +31,7 @@ resource "aws_lb_target_group" "del_target_group" {
   protocol = "HTTPS"
   vpc_id   = data.aws_subnet_ids.del_subnet_ids.vpc_id
   tags     = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+    DCR: "AWS-WEBFALB0002-0.0.2"
   }
 }
 
@@ -126,7 +126,7 @@ resource "aws_instance" "aws-instance" {
   vpc_security_group_ids = [module.instance_security_group.Security_Group_Id]
   iam_instance_profile   = var.instance_role
   tags                   = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+    DCR: "AWS-WEBFALB0002-0.0.2"
     Name = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
   }
   user_data = var.operatingsystem == "windows" ? data.null_data_source.userdata_windows[count.index].outputs["windows_userdata"] : data.null_data_source.userdata_linux[count.index].outputs["linux_userdata"]
