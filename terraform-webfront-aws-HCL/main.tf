@@ -21,7 +21,7 @@ module "application_load_balancer" {
   key_name                     = var.key_name
   certificate_arn              = var.certificate_arn
   ssl_policy                   = var.ssl_policy
-  resource_token               = var.resource_token 
+  resource_token               = var.resource_token
   client_id                    = var.client_id
   client_secret                = var.client_secret
   accountid_puppet             = var.accountid_puppet
@@ -35,6 +35,7 @@ module "application_load_balancer" {
 output "puppet_response" {
   value = [module.application_load_balancer.puppet_response]
 }
-//  terraform {
-//      backend "azurerm" {}
-//  }
+
+terraform {
+  backend "azurerm" {}
+}
