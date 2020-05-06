@@ -6,8 +6,7 @@ variable "vnet_name" {
 }
 variable "vnet_resource_group" {
 }
-variable "prefix" {
-  description = "(Required) Default prefix to use with your resource names."
+variable "recipe_name" {
 }
 variable "frontend_name" {
   description = "(Required) Specifies the name of the frontend ip configuration."
@@ -24,17 +23,15 @@ variable "remote_port" {
   default = { ssh = ["Tcp", "22"] }
 }
 variable "lb_port" {
-  #  default={ http  = ["80", "Tcp", "80"]
-  #    https = ["443", "Tcp", "443"]
-  #  }
+  default = {
+    https = ["443", "Tcp", "443"]
+  }
 }
 variable "subscription_id" {
 }
-variable "Domain" {
+variable "domain" {
 }
-variable "Environment_puppet" {
-}
-variable "Provider_name" {
+variable "environment_puppet" {
 }
 variable "OperatingSystem" {
 }
@@ -51,19 +48,27 @@ variable "environment_sn" {
 }
 variable "system_sn" {
 }
-variable "componentKey_sn" {
-}
-variable "server_version" {
+variable "componentkey_sn" {
 }
 variable "subnet_name" {
 }
 variable "ad_sg_names" {
 }
-variable "golden_image_name" {
+variable "marketplace_image" {
+  type = map
+  default = {
+    publisher = null,
+    offer     = null,
+    sku       = null
+  }
 }
-variable "img_gallery_name" {
-}
-variable "img_resource_group" {
+variable "custom_image" {
+  type = map
+  default = {
+    image_name           = null,
+    gallery_name         = null,
+    image_resource_group = null
+  }
 }
 
 
