@@ -18,31 +18,31 @@ data "azurerm_virtual_network" "del_vnet" {
 
 #------------------------------------------using existing subnets-------------------------------------------------------------------
 data "azurerm_subnet" "del_subnet" {
-  name = var.subnet_name
-  #name                 = data.azurerm_virtual_network.del_vnet.subnets[0]
+  name                 = var.subnet_name
   resource_group_name  = data.azurerm_virtual_network.del_vnet.resource_group_name
   virtual_network_name = data.azurerm_virtual_network.del_vnet.name
+}
 
-}
-#-------------------------------------------using golden image-------------------------------------------------------------
+#-------------------------------------------using custom images---------------------------------------------------
 data "azurerm_shared_image" "existing" {
-  name                = var.golden_image_name
-  gallery_name        = var.img_gallery_name
-  resource_group_name = var.img_resource_group
+  count               = var.custom_image["image_name"] != null ? 1 : 0
+  name                = lookup(var.custom_image, "image_name", null)
+  gallery_name        = lookup(var.custom_image, "gallery_name", null)
+  resource_group_name = lookup(var.custom_image, "image_resource_group", null)
 }
+
 #------------------------------------------creating load balancer----------------------------------------------------------
 resource "azurerm_lb" "del_lb" {
-  name                = "${var.prefix}-lb"
+  name                = "${var.recipe_name}-lb"
   location            = var.location
   resource_group_name = var.resource_group
   sku                 = "Standard"
   frontend_ip_configuration {
-
     name      = var.frontend_name
     subnet_id = data.azurerm_subnet.del_subnet.id
   }
   tags = {
-    "DCR" : "AZ-WEBFALB0001-0.0.2"
+    "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
 }
 
@@ -61,7 +61,6 @@ resource "azurerm_lb_probe" "del_lb_probe" {
   port                = element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 2)
   interval_in_seconds = var.lb_probe_interval
   number_of_probes    = var.lb_probe_unhealthy_threshold
-
 }
 
 resource "azurerm_lb_rule" "del_lb_rule" {
@@ -80,20 +79,6 @@ resource "azurerm_lb_rule" "del_lb_rule" {
   depends_on                     = [azurerm_lb_probe.del_lb_probe]
 }
 
-#----------------------------------------------------------------Generate Server names---------------------------------------
-data "external" "servernaming" {
-  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
-  query = {
-    numberServers = var.vm_count
-    environment   = var.environment_sn
-    system        = var.system_sn
-    componentKey  = var.componentKey_sn
-  }
-}
-# output "servernames" {
-#   value = "${data.external.servernaming.result}"
-# }
-
 #-------------------------------------------------------Generate Token Here-----------------------------------------------------
 resource "null_resource" "test-api1" {
   #count      = "${var.vm_count}"
@@ -101,11 +86,24 @@ resource "null_resource" "test-api1" {
     values = "${data.external.servernaming.result[0]}"
   }
   provisioner "local-exec" {
-    //get token using single payload
     command     = "${path.module}/Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
     interpreter = ["PowerShell", "-Command"]
   }
 }
+
+#----------------------------------------------------------------Generate Server names---------------------------------------
+data "external" "servernaming" {
+  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
+  query = {
+    numberServers = var.vm_count
+    environment   = var.environment_sn
+    system        = var.system_sn
+    componentKey  = var.componentkey_sn
+  }
+}
+# output "servernames" {
+#   value = "${data.external.servernaming.result}"
+# }
 
 #--------------------------------------------------------local file and null resource here-----------------------------------
 resource "local_file" "terraform_tf" {
@@ -114,10 +112,10 @@ resource "local_file" "terraform_tf" {
      {
      "AccountID":  "${var.subscription_id}",
      "ResourceLocation":  "${var.resource_group}",
-     "Domain":  "${var.Domain}",
+     "Domain":  "${var.domain}",
      "ResourceIdentifier":  "${data.external.servernaming.result[count.index]}",
-     "Environment":  "${var.Environment_puppet}",
-     "Provider":  "${var.Provider_name}",
+     "Environment":  "${var.environment_puppet}",
+     "Provider":  "azure",
      "OperatingSystem":  "${var.OperatingSystem}"
   }
      EOF
@@ -144,18 +142,18 @@ resource "azurerm_network_interface" "del_network_interface" {
     # load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"]
   }
   tags = {
-    "DCR" : "AZ-WEBFALB0001-0.0.2"
+    "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
 }
 resource "azurerm_availability_set" "del_availability_set" {
-  name                         = "${var.prefix}-avset"
+  name                         = "${var.recipe_name}-avset"
   location                     = var.location
   resource_group_name          = var.resource_group
   platform_fault_domain_count  = var.vm_count
   platform_update_domain_count = var.vm_count
   managed                      = true
   tags = {
-    "DCR" : "AZ-WEBFALB0001-0.0.2"
+    "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
 }
 #------------------------------------------------Custom data Linux-----------------------------------------------------
@@ -164,7 +162,7 @@ data "null_data_source" "linux-values" {
     data = <<-EOF
      #!/bin/bash
      mkdir -p /etc/puppetlabs/facter/facts.d
-     echo ' {"elevated_groups": {"sudo_groups":${jsonencode(split(",", var.ad_sg_names))}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+     echo ' {"elevated_groups": {"sudo_groups":${jsonencode(var.ad_sg_names)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
      EOF
   }
 }
@@ -180,39 +178,36 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   network_interface_ids = ["${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"]
   vm_size               = "Standard_D1_v2"
 
-  # this line to delete the OS disk automatically when deleting the VM
+  # to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
 
-  # this line to delete the data disks automatically when deleting the VM
+  # to delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
 
+  # using azure marketplace image and custom image based on user input
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "${var.server_version}-LTS"
+    publisher = lookup(var.marketplace_image, "publisher", null)
+    offer     = lookup(var.marketplace_image, "offer", null)
+    sku       = lookup(var.marketplace_image, "sku", null)
     version   = "latest"
+    id        = var.custom_image["image_name"] != null ? data.azurerm_shared_image.existing[0].id : null
   }
-
   storage_os_disk {
     name              = "${data.external.servernaming.result[count.index]}-disk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
     os_type           = "Linux"
-
   }
-
   os_profile {
     computer_name  = data.external.servernaming.result[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
     custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
   }
-
   tags = {
-    "DCR" : "AZ-WEBFALB0001-0.0.2"
+    "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
-
   os_profile_linux_config {
     disable_password_authentication = false
   }
@@ -233,7 +228,7 @@ data "null_data_source" "values" {
   Write-Output '{
  "elevated_groups": {
  "Administrators":  
-   ${jsonencode(split(",", var.ad_sg_names))}
+   ${jsonencode(var.ad_sg_names)}
  }
 }'| out-file -encoding ASCII C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
      EOF
@@ -255,51 +250,39 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
   network_interface_ids = ["${element(azurerm_network_interface.del_network_interface.*.id, count.index)}"]
   vm_size               = "Standard_D1_v2"
 
-
-  # this line to delete the OS disk automatically when deleting the VM
+  # to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
 
-  # this line to delete the data disks automatically when deleting the VM
+  # to delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
 
-  # using custom golden image
+  #using azure marketplace image and custom image based on user input
   storage_image_reference {
-    id = data.azurerm_shared_image.existing.id
+    publisher = lookup(var.marketplace_image, "publisher", null)
+    offer     = lookup(var.marketplace_image, "offer", null)
+    sku       = lookup(var.marketplace_image, "sku", null)
+    version   = "latest"
+    id        = var.custom_image["image_name"] != null ? data.azurerm_shared_image.existing[0].id : null
   }
-
-  #using azure marketplace image
-  # storage_image_reference {
-  #   publisher = "MicrosoftWindowsServer"
-  #   offer     = "WindowsServer"
-  #   sku       = "${var.server_version}-Datacenter"
-  #   version   = "latest"
-  # }
-
   storage_os_disk {
     name              = "${data.external.servernaming.result[count.index]}-disk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
     os_type           = "Windows"
-
   }
-
   os_profile {
     computer_name  = data.external.servernaming.result[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
-
   }
-
   tags = {
-    "DCR" : "AZ-WEBFALB0001-0.0.2"
+    "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
-
   os_profile_windows_config {
     provision_vm_agent = true
   }
 }
-
 
 resource "azurerm_virtual_machine_extension" "windows" {
   count                      = var.OperatingSystem == "windows" ? var.vm_count : 0
@@ -324,27 +307,3 @@ resource "null_resource" "call-puppet-windows" {
     command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   }
 }
-
-# ##########################################################
-## Install IIS on VM
-##########################################################
-
-# resource "azurerm_virtual_machine_extension" "iis" {
-#   count                = "${var.vm_count}"
-#   name                 = "install-iis"
-#   resource_group_name  = "${var.resource_group_name}"
-#   location             = "${var.location}"
-#   virtual_machine_name = "${element(azurerm_virtual_machine.main.*.name, count.index)}"
-#   publisher            = "Microsoft.Compute"
-#   type                 = "CustomScriptExtension"
-#   type_handler_version = "1.9"
-
-#   settings = <<SETTINGS
-#     { 
-#       "commandToExecute": "powershell Add-WindowsFeature Web-Asp-Net45;Add-WindowsFeature NET-Framework-45-Core;Add-WindowsFeature Web-Net-Ext45;Add-WindowsFeature Web-ISAPI-Ext;Add-WindowsFeature Web-ISAPI-Filter;Add-WindowsFeature Web-Mgmt-Console;Add-WindowsFeature Web-Scripting-Tools;Add-WindowsFeature Search-Service;Add-WindowsFeature Web-Filtering;Add-WindowsFeature Web-Basic-Auth;Add-WindowsFeature Web-Windows-Auth;Add-WindowsFeature Web-Default-Doc;Add-WindowsFeature Web-Http-Errors;Add-WindowsFeature Web-Static-Content;"
-#     } 
-# SETTINGS
-# }
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------
-
