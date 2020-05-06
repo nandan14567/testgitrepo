@@ -1,5 +1,3 @@
-variable "access_key"{}
-variable "secret_key"{}
 variable "region"{}
 variable "recipe_name"{}
 variable "recipe_cidrs"{}

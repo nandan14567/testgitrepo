@@ -3,7 +3,7 @@ resource "aws_security_group" "del_security_group" {
   description = var.security_group_name
   vpc_id      = var.vpc_id
   tags        = {
-    DCR: "AWS-WEBFALB0002-0.0.1"
+    DCR: "AWS-WEBFALB0001-0.0.1"
   }
 
 }
@@ -19,10 +19,10 @@ resource "aws_security_group_rule" "egress" {
 }
 
 resource "aws_security_group_rule" "tcp" {
-  count             = var.tcp_ports == "default_null" ? 0 : length(split(",", var.tcp_ports))
+  count             = var.tcp_ports == "default_null" ? 0 : length(var.tcp_ports)
   type              = "ingress"
-  from_port         = element(split(",", var.tcp_ports), count.index)
-  to_port           = element(split(",", var.tcp_ports), count.index)
+  from_port         = element(var.tcp_ports, count.index)
+  to_port           = element(var.tcp_ports, count.index)
   protocol          = "tcp"
   cidr_blocks       = var.cidrs
   description       = "Ingress traffic"
