@@ -161,7 +161,7 @@ resource "null_resource" "wait_before_puppet_api_call" {
   depends_on = [aws_instance.aws-instance,aws_lb.del_load_balancer]
   provisioner "local-exec" {
     command     = "sleep 250"
-    interpreter = ["script", "-eq", "-c"]
+    interpreter = ["/bin/bash", "-c"]
  }
 
 }
