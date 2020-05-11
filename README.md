@@ -51,7 +51,7 @@ Name | Description | Type | Examples |
  client_id | (Required) Azure client id for token api payload | string | --
  client_secret | (Required) Azure client id for token api payload | string | --
  resource_token | (Required) Resource for token api payload | string | --
- securitygroup_administrators | (Required) Elevated Security will be used to give an AD Security Group elevated privileges on a Virtual Machine for both Windows and Linux. | map(string) | ["us\\sg-us-87722574-admin","us\\sg-us-9063368-admin"] / ["sg-us-87722574-admin","sg-us-9063368-admin"]
+ securitygroup_administrators | (Required) Elevated Security will be used to give an AD Security Group elevated privileges on a Virtual Machine for both Windows and Linux. | map(string) | ["us\\\sg-us-87722574-admin","us\\\sg-us-9063368-admin"] / ["sg-us-87722574-admin","sg-us-9063368-admin"]
    
 ---------------------------------------------------------------
 
@@ -59,7 +59,7 @@ Note: Format of Security Groups
   
 Platform | Format | Example
 ---------|----------|----------
- Windows | us\\secuity_group | us\\sg-us-87722574-admin
+ Windows | us\\\secuity_group | us\\\sg-us-87722574-admin
  Linux | security_group | sg-us-87722574-admin
  
  
