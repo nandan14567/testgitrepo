@@ -20,7 +20,7 @@ Terraform module which creates security group with deloitte cidrs, Load Balancer
 
 **Custom Provider Data_Source Used:**
 
-restapi - Used to call the deloitte onecloud API
+restapi - Used to call the deloitte onecloud API Post and Get API'S
 
 ## **Inputs** 
 
@@ -33,7 +33,7 @@ Name | Description | Type | Examples |
  region | (Required) This is the AWS region | String | us-east-1
  recipe_name | (Required) Unique name for your recipe for naming resources| String | aws-alb-webfront
  recipe_cidrs | (Required) Cidr for inboud and outbound internet traffic |  map(string)| ["10.0.0.0/8"]
- instance_count | (Required) No of EC2 Instances you want to create| number | 2
+ instance_count | (Required) Nos of EC2 Instances you want to create| number | 2
  instance_ports | (Required) Ports that your Instances Listen to | map(string) | ["443","3389"]/["443","22"]
  vpc_id | (Required)  vpc_id having deloitte on-prem connectivity | string | vpc-38gs47ed
  instance_subnet_id | (Required) subnet_id belonging to vpc_id  | string | subnet-0e6cgugd8sdgc19
@@ -43,9 +43,9 @@ Name | Description | Type | Examples |
  key_name | (Optional) The key name of the Key Pair to use for the instance; which can be managed using the aws_key_pair resource. should be in .pem format | string | testkey
  certificate_arn | (Required) The ARN of the default SSL server certificate. Exactly one certificate is required if the protocol is HTTPS | string | arn:aws:iam::835354328:server-certificate/my-SSL-Certificate
  ssl_policy | (Required) The name of the SSL Policy for the listener for HTTPS protocol| string | ELBSecurityPolicy-TLS-1-2-2017-01
- accountid_puppet | (Required) Valid accountid required or puppet installation | string | --
- domain_puppet | (Required) Valid domain required or puppet installation| string | us.deloitte.com
- environment_puppet | (Required) Valid environment required or puppet installation| string | NPD/SBX
+ accountid_puppet | (Required) Valid accountid required for puppet installation | string | --
+ domain_puppet | (Required) Valid domain required for puppet installation| string | us.deloitte.com
+ environment_puppet | (Required) Valid environment required for puppet installation| string | NPD/SBX
  operatingsystem | (Required) | string | windows/linux
  servernaming | (Required) Json payload for servernaming api |  | {"environment": "AWSPPRD","system": "USPPRD","vmAllocationRequest": [{"componentKey": "WEB","numberServers":"2"}]}
  client_id | (Required) Azure client id for token api payload | string | --
