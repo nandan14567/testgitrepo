@@ -27,7 +27,7 @@ restapi - Used to call the deloitte onecloud API Post and Get API'S
 Note : *Examples are for reference only*
 
 Name | Description | Type | Examples |
----------|----------|---------|-------
+---------|---------|---------|---------
  access_key | (Required) This is the AWS access key | String | --
  secret_key | (Required) This is the AWS Secret key | String | --
  region | (Required) This is the AWS region | String | us-east-1
