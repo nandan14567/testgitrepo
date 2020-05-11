@@ -44,9 +44,9 @@ Name | Description | Type | Examples |
  certificate_arn | (Required) The ARN of the default SSL server certificate. Exactly one certificate is required if the protocol is HTTPS | string | arn:aws:iam::835354328:server-certificate/my-SSL-Certificate
  ssl_policy | (Required) The name of the SSL Policy for the listener for HTTPS protocol| string | ELBSecurityPolicy-TLS-1-2-2017-01
  accountid_puppet | (Required) Valid accountid required or puppet installation | string | --
- domain_puppet | (Required) Valid domain required or puppet installation| string | --
- environment_puppet | (Required) Valid environment required or puppet installation| string | --
- operatingsystem | (Required) | string | --
+ domain_puppet | (Required) Valid domain required or puppet installation| string | us.deloitte.com
+ environment_puppet | (Required) Valid environment required or puppet installation| string | NPD/SBX
+ operatingsystem | (Required) | string | windows/linux
  servernaming | (Required) Json payload for servernaming api |  | {"environment": "AWSPPRD","system": "USPPRD","vmAllocationRequest": [{"componentKey": "WEB","numberServers":"2"}]}
  client_id | (Required) Azure client id for token api payload | string | --
  client_secret | (Required) Azure client id for token api payload | string | --
