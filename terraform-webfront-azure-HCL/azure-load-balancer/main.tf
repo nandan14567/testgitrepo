@@ -209,6 +209,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
     user     = random_string.username.result
     password = random_password.password.result
   }
+  
   provisioner "remote-exec" {
     inline = [
       "echo '${random_password.password.result}' | sudo -S mkdir -p /etc/puppetlabs/facter/facts.d",
@@ -229,8 +230,7 @@ data "null_data_source" "values" {
     New-Item -ItemType directory -Path 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d'
   }
   Write-Output '{
- "elevated_groups":   
-   ${jsonencode(var.ad_security_groups)}
+ "elevated_groups": ${jsonencode(var.ad_security_groups)}
 }'| out-file -encoding ASCII C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
      EOF
   }
