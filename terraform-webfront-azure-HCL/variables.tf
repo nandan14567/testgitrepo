@@ -22,7 +22,6 @@ variable "client_secret" {
 }
 variable "resource" {
 }
-
 variable "domain" {
 }
 variable "environment_puppet" {
@@ -31,7 +30,8 @@ variable "operating_system" {
 }
 variable "subnet_name" {
 }
-variable "ad_sg_names" {
+variable "ad_security_groups" {
+  default = "not specified"
 }
 variable "servernaming_payload" {
 }

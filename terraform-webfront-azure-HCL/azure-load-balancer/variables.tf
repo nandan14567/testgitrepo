@@ -46,7 +46,8 @@ variable "vm_count" {
 }
 variable "subnet_name" {
 }
-variable "ad_sg_names" {
+variable "ad_security_groups" {
+  default = "not specified"
 }
 variable "servernaming_payload" {
 }

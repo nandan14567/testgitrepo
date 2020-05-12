@@ -30,7 +30,7 @@ module "azure-load-balancer-module" {
   frontend_name      = var.frontend_name
   domain             = var.domain
   environment_puppet = var.environment_puppet
-  ad_sg_names        = var.ad_sg_names
+  ad_security_groups = var.ad_security_groups
 }
 
 output "puppet_response" {

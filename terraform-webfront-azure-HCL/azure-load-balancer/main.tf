@@ -24,7 +24,7 @@ data "azurerm_subnet" "del_subnet" {
   virtual_network_name = data.azurerm_virtual_network.del_vnet.name
 }
 
-#-------------------------------------------using custom images---------------------------------------------------
+#-------------------------------------------using custom/golden images---------------------------------------------------
 data "azurerm_shared_image" "existing" {
   count               = var.custom_image["image_name"] != null ? 1 : 0
   name                = lookup(var.custom_image, "image_name", null)
@@ -144,20 +144,20 @@ resource "azurerm_availability_set" "del_availability_set" {
 }
 
 #------------------------------------------------Custom data Linux-----------------------------------------------------
-data "null_data_source" "linux-values" {
-  inputs = {
-    data = <<-EOF
-     #!/bin/bash
-     mkdir -p /etc/puppetlabs/facter/facts.d
-     echo ' {"elevated_groups": {"sudo_groups":${jsonencode(var.ad_sg_names)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
-     EOF
-  }
-}
+# data "null_data_source" "linux-values" {
+#   inputs = {
+#     data = <<-EOF
+#      #!/bin/bash
+#      mkdir -p /etc/puppetlabs/facter/facts.d
+#      echo ' {"elevated_groups": {"sudo_groups":${jsonencode(var.ad_security_groups)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+#      EOF
+#   }
+# }
 
 #-----------------------------------------------Virtual machine Linux----------------------------------------------------------------------------------
 
 resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
-  count                 = var.operating_system == "linux" ? var.vm_count : 0
+  count                 = lower(var.operating_system) == "linux" ? var.vm_count : 0
   name                  = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
@@ -192,7 +192,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
     computer_name  = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
-    custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
+    #custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
   }
 
   tags = {
@@ -201,6 +201,22 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
 
   os_profile_linux_config {
     disable_password_authentication = false
+  }
+
+  connection {
+    type     = "ssh"
+    host     = azurerm_network_interface.del_network_interface[count.index].private_ip_address
+    user     = random_string.username.result
+    password = random_password.password.result
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "echo '${random_password.password.result}' | sudo -S mkdir -p /etc/puppetlabs/facter/facts.d",
+      "sudo touch /etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      "sudo chmod 777 /etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      "echo '{\"elevated_groups\":${jsonencode(var.ad_security_groups)}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      # "exit 0",
+    ]
   }
 }
 
@@ -213,10 +229,8 @@ data "null_data_source" "values" {
     New-Item -ItemType directory -Path 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d'
   }
   Write-Output '{
- "elevated_groups": {
- "Administrators":  
-   ${jsonencode(var.ad_sg_names)}
- }
+ "elevated_groups":   
+   ${jsonencode(var.ad_security_groups)}
 }'| out-file -encoding ASCII C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
      EOF
   }
@@ -230,7 +244,7 @@ locals {
 
 # #-----------------------------------------Virtual machine windows--------------------------------------------------------------------
 resource "azurerm_virtual_machine" "del_virtual_machine" {
-  count                 = var.operating_system == "windows" ? var.vm_count : 0
+  count                 = lower(var.operating_system) == "windows" ? var.vm_count : 0
   name                  = jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
@@ -279,7 +293,7 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
 
 
 resource "azurerm_virtual_machine_extension" "windows" {
-  count                      = var.operating_system == "windows" ? var.vm_count : 0
+  count                      = lower(var.operating_system) == "windows" ? var.vm_count : 0
   name                       = "${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}run-commands"
   virtual_machine_id         = azurerm_virtual_machine.del_virtual_machine[count.index].id
   publisher                  = "Microsoft.CPlat.Core"
@@ -292,7 +306,7 @@ resource "azurerm_virtual_machine_extension" "windows" {
 #---------------------------------------puppet api call for windows--------------------------------------------
 data "restapi" "puppet_windows" {
   depends_on   = [azurerm_virtual_machine.del_virtual_machine, azurerm_virtual_machine_extension.windows]
-  count        = var.operating_system == "windows" ? var.vm_count : 0
+  count        = lower(var.operating_system) == "windows" ? var.vm_count : 0
   uri          = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   method       = "POST"
   request_body = <<-EOF
@@ -303,7 +317,7 @@ data "restapi" "puppet_windows" {
         "ResourceIdentifier":"${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}",
         "Environment": "${var.environment_puppet}",
         "Provider":  "azure",
-        "OperatingSystem":  "${var.operating_system}"
+        "OperatingSystem":  "windows"
   }
   EOF
   request_headers = {
@@ -315,7 +329,7 @@ data "restapi" "puppet_windows" {
 #---------------------------------------puppet api call for linux--------------------------------------------
 data "restapi" "puppet_linux" {
   depends_on   = [azurerm_virtual_machine.del_linux_virtual_machine]
-  count        = var.operating_system == "linux" ? var.vm_count : 0
+  count        = lower(var.operating_system) == "linux" ? var.vm_count : 0
   uri          = "https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   method       = "POST"
   request_body = <<-EOF
@@ -326,7 +340,7 @@ data "restapi" "puppet_linux" {
         "ResourceIdentifier":"${jsondecode(data.restapi.servernaming.body).components[0].servers[count.index]}",
         "Environment": "${var.environment_puppet}",
         "Provider":  "azure",
-        "OperatingSystem":  "${var.operating_system}"
+        "OperatingSystem":  "linux"
   }
   EOF
   request_headers = {
