@@ -209,7 +209,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
     user     = random_string.username.result
     password = random_password.password.result
   }
-  
+
   provisioner "remote-exec" {
     inline = [
       "echo '${random_password.password.result}' | sudo -S mkdir -p /etc/puppetlabs/facter/facts.d",
