@@ -47,7 +47,7 @@ Name | Description | Type | Examples |
  servernaming_payload | (Required) Payload needed to call servernaming API | Map |  { "environment": "AZPPRD", "system": "USPPRD","vmAllocationRequest": [{"componentKey": "WEB","numberServers": 2}]},
  vm_count | (Required) Number of virtual machine to be depolyed | Number | 2
  operating_system | (Required) Valid Operating System Name | String | Windows/Linux
- custom_image(image_name,gallery_name,image_resource_group)/marketplace_image(publisher,offer,sku) | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ custom_image/marketplace_image | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
  frontend_name | (Required) Specifies the name of the frontend ip configuration. | String | SubnetIPAddress
  domain | (Required)  Valid domain required for puppet installation | String | us.deloitte.com
  environment_puppet | (Required) Valid Environment required for puppet installation | String | NPD
