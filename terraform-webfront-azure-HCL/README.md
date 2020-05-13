@@ -25,7 +25,7 @@ Terraform HCL templates to deploy Azure Webfront which consists of an applicatio
 
 **Custom Provider Data_Source Used:**
 
-restapi - Used to call the deloitte onecloud API Post and Get API'S
+restapi - Used to call the deloitte onecloud APIs
 
 ## **Inputs** 
 
@@ -51,7 +51,7 @@ Name | Description | Type | Examples |
  frontend_name | (Required) Specifies the name of the frontend ip configuration. | String | SubnetIPAddress
  domain | (Required)  Valid domain required for puppet installation | String | us.deloitte.com
  environment_puppet | (Required) Valid Environment required for puppet installation | string | NPD
- ad_security_groups | (Required)  Active Directory security group required to access the created VMs | Map | "ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+ ad_security_groups| (Required)  Active Directory security group required to access the created VMs | Map |  {"Administrators": ["US\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}/"ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
 
  
