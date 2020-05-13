@@ -33,27 +33,25 @@ Note : *Examples are for reference only*
 
 Name | Description | Type | Examples |
 ---------|---------|---------|---------
-
-
- recipe_name|(Required) Unique name for recipe to name resources | String | test-recipe
+ recipe_name | (Required) Unique name for recipe to name resources | String | test-recipe
  subscription_id | (Required) Azure Valid Subscription id | String | admin123
- tenant_id|(Required) Valid Azure tenant id  | String | 36da45f1-dd2c-4d1f-af13-5abe46
+ tenant_id | (Required) Valid Azure tenant id  | String | 36da45f1-dd2c-4d1f-af13-5abe46
  client_id | (Required) Azure valid client id  | String | --
- client_secret | (Required) Azure valid client client secret  | String | --
- resource| (Required) Valid Resource to generate token| String | njsnslnlslsnglknlsgnsl-715d-45a7-887e-01sgsgsg
- location|(Required)  Azure location  where resources get deployed| String | East US
- resource_group(Existing)| (Required)  Container that holds related resources| String |AZRG-UE-ITS-ARAVIND-NPD-001
- vnet_name(Existing)|(Required) Virtual Network name having deloitte on-prem connectivity| String | azeusnpdvnt01-Horizon
- vnet_resource_group(Existing)|(Required) Virtual Network resource group | String | AZRG-ITS-ITS-NPD
- subnet_name(Existing)|(Required) Valid Subnet Name under virtual network having on-prem connectivity| String | vmw-hcs-4596e56a-5776-4b0a
- servernaming_payload |(Required) Payload needed to call servernaming API | Map |  { "environment": "AZPPRD", "system": "USPPRD","vmAllocationRequest": [{"componentKey": "WEB","numberServers": 2}]},
- vm_count| (Required) Number of virtual machine to be depolyed | Number | 2
- operating_system| (Required) Valid Operating System Name | String | Windows/Linux
- custom_image(image_name,gallery_name,image_resource_group)/marketplace_image(publisher,offer,sku) |(Required) Image details required for virtual machines|Map|"custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
- frontend_name |(Required) Specifies the name of the frontend ip configuration.| String | SubnetIPAddress
- domain|(Required)  Valid domain required for puppet installation | String | us.deloitte.com
- environment_puppet| (Required) Valid Environment required for puppet installation| string | NPD
- ad_security_groups|(Required)  Active Directory security group required to access the created VMs | Map | [Yesterday 2:10 PM] Vahab, Abdul"ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+ client_secret | (Required) Azure valid client client secret | String | --
+ resource | (Required) Valid Resource to generate token | String | njsnslnlslsnglknlsgnsl-715d-45a7-887e-01sgsgsg
+ location | (Required)  Azure location  where resources get deployed | String | East US
+ resource_group(Existing) | (Required)  Container that holds related resources | String | AZRG-UE-ITS-ARAVIND-NPD-001
+ vnet_name(Existing) | (Required) Virtual Network name having deloitte on-prem connectivity | String | azeusnpdvnt01-Horizon
+ vnet_resource_group(Existing) | (Required) Virtual Network resource group | String | AZRG-ITS-ITS-NPD
+ subnet_name(Existing) | (Required) Valid Subnet Name under virtual network having on-prem connectivity | String | vmw-hcs-4596e56a-5776-4b0a
+ servernaming_payload | (Required) Payload needed to call servernaming API | Map |  { "environment": "AZPPRD", "system": "USPPRD","vmAllocationRequest": [{"componentKey": "WEB","numberServers": 2}]},
+ vm_count | (Required) Number of virtual machine to be depolyed | Number | 2
+ operating_system | (Required) Valid Operating System Name | String | Windows/Linux
+ custom_image(image_name,gallery_name,image_resource_group)/marketplace_image(publisher,offer,sku) | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ frontend_name | (Required) Specifies the name of the frontend ip configuration. | String | SubnetIPAddress
+ domain | (Required)  Valid domain required for puppet installation | String | us.deloitte.com
+ environment_puppet | (Required) Valid Environment required for puppet installation | string | NPD
+ ad_security_groups | (Required)  Active Directory security group required to access the created VMs | Map | "ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
 
  
