@@ -23,9 +23,6 @@ Terraform HCL templates to deploy Azure Webfront which consists of an applicatio
 [azurerm_subnet](https://www.terraform.io/docs/providers/azurerm/r/subnet.html)\
 [azurerm_shared_image](https://www.terraform.io/docs/providers/azurerm/r/virtual_network.html)
 
-**Custom Provider Data Source Used:**
-
-external- Used to call the deloitte onecloud APIs
 
 ## **Inputs** 
 
@@ -40,9 +37,9 @@ Name | Description | Type | Examples |
  client_secret | (Required) Azure valid client client secret | String | --
  resource | (Required) Valid Resource to generate token | String | 45hg-715d-45a7-887e-01sgsgsg
  location | (Required)  Azure location  where resources get deployed | String | East US
- resource_group(Existing) | (Required)  Container that holds related resources | String | AZRG-UE-ITS-001
+ resource_group (Existing) | (Required)  Container that holds related resources | String | AZRG-UE-ITS-001
  vnet_name (Existing) | (Required) Virtual Network name having deloitte on-prem connectivity | String | azeusnpnt01-Horizon
- vnet_resource_group(Existing) | (Required) Virtual Network resource group | String | AZRG-ITS-ITS-NPD
+ vnet_resource_group (Existing) | (Required) Virtual Network resource group | String | AZRG-ITS-ITS-NPD
  subnet_name (Existing) | (Required) Valid Subnet Name under virtual network having on-prem connectivity | String | vmw-hcs-4596e56a-5776-4b0a
  environment_sn | (Required)  Environment name required to Server Naming API | String | USAZURETEST
  system_sn | (Required)  Application name required to call Server Naming API | String | MyApp
