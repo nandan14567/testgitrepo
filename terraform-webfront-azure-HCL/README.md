@@ -57,7 +57,7 @@ Name | Description | Type | Examples |
 
  ### Format of custom_image/marketplace_image
 
-Variable | Type | Example
+Name | Type | Example
 ---------|----------|----------
  custom_image | Map | {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}
  marketplace_image | Map | {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
@@ -65,7 +65,7 @@ Variable | Type | Example
 
  ### Format of ad_security_groups
 
-Platform | Variable | Example
+Platform | Name | Example
 ---------|----------|----------
  Windows | ad_security_groups | {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}
  Linux | ad_security_groups | {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
