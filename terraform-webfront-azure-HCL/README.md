@@ -57,16 +57,15 @@ Name | Description | Type | Examples |
 
  ### Format of custom_image/marketplace_image
 
-Image_Type | Format | Example
+Variable | Type | Example
 ---------|----------|----------
  custom_image | map | {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}
  marketplace_image | map | {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
- 
-Note: For more details please follow Elevated_Security document
 
- ### Format of Elevated_Security Group
 
-Platform | Format | Example
+ ### Format of ad_security_groups
+
+Platform | Variable | Example
 ---------|----------|----------
  Windows | ad_security_groups | {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}
  Linux | ad_security_groups | {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
