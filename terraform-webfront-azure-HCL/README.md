@@ -1,4 +1,4 @@
-# **Terraform Azure powershell Recipe**
+# **Terraform Azure Webfront Recipe**
 
 Terraform HCL templates to deploy Azure Webfront which consists of an application load balancer and registered Azure VMs behind this application load balancer
 
@@ -49,7 +49,8 @@ Name | Description | Type | Examples |
  componentkey_sn | (Required) Component key name reqired to call Server Naming API| String | WEB
  vm_count | (Required) Number of virtual machine to be depolyed | Number | 2
  operating_system | (Required) Valid Operating System Name | String | Windows/Linux
- custom_image(image_name,gallery_name,image_resource_group)/marketplace_image(publisher,offer,sku) | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ custom_image(image_name,gallery_name,image_resource_group)
+ marketplace_image(publisher,offer,sku) | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
  frontend_name | (Required) Specifies the name of the frontend ip configuration. | String | SubnetIPAddress
  domain | (Required)  Valid domain required for puppet installation | String | us.deloitte.com
  environment_puppet | (Required) Valid Environment required for puppet installation | string | NPD
