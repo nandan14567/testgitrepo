@@ -37,7 +37,8 @@ variable "componentkey_sn" {
 }
 variable "subnet_name" {
 }
-variable "ad_sg_names" {
+variable "ad_security_groups" {
+  default = "not specified"
 }
 variable "marketplace_image" {
   type = map

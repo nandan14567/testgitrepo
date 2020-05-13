@@ -25,18 +25,18 @@ module "azure-load-balancer-module" {
   componentkey_sn    = var.componentkey_sn
   resource_group     = var.resource_group
   vm_count           = var.vm_count
-  OperatingSystem    = var.operating_system
+  operating_system   = var.operating_system
   marketplace_image  = var.marketplace_image
   custom_image       = var.custom_image
   frontend_name      = var.frontend_name
   domain             = var.domain
   environment_puppet = var.environment_puppet
-  ad_sg_names        = var.ad_sg_names
+  ad_security_groups = var.ad_security_groups
 }
 
-terraform {
-  backend "azurerm" {}
-}
+# terraform {
+#   backend "azurerm" {}
+# }
 
 
 

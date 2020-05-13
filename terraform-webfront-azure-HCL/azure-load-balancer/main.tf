@@ -91,7 +91,7 @@ resource "null_resource" "test-api1" {
   }
 }
 
-#----------------------------------------------------------------Generate Server names---------------------------------------
+#-------------------------------------------------------Generate Server names---------------------------------------
 data "external" "servernaming" {
   program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
   query = {
@@ -101,9 +101,6 @@ data "external" "servernaming" {
     componentKey  = var.componentkey_sn
   }
 }
-# output "servernames" {
-#   value = "${data.external.servernaming.result}"
-# }
 
 #--------------------------------------------------------local file and null resource here-----------------------------------
 resource "local_file" "terraform_tf" {
@@ -116,7 +113,7 @@ resource "local_file" "terraform_tf" {
      "ResourceIdentifier":  "${data.external.servernaming.result[count.index]}",
      "Environment":  "${var.environment_puppet}",
      "Provider":  "azure",
-     "OperatingSystem":  "${var.OperatingSystem}"
+     "OperatingSystem":  "${var.operating_system}"
   }
      EOF
   filename = "${path.root}/temppayload${count.index}.json"
@@ -145,6 +142,7 @@ resource "azurerm_network_interface" "del_network_interface" {
     "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
 }
+
 resource "azurerm_availability_set" "del_availability_set" {
   name                         = "${var.recipe_name}-avset"
   location                     = var.location
@@ -156,21 +154,22 @@ resource "azurerm_availability_set" "del_availability_set" {
     "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
 }
+
 #------------------------------------------------Custom data Linux-----------------------------------------------------
-data "null_data_source" "linux-values" {
-  inputs = {
-    data = <<-EOF
-     #!/bin/bash
-     mkdir -p /etc/puppetlabs/facter/facts.d
-     echo ' {"elevated_groups": {"sudo_groups":${jsonencode(var.ad_sg_names)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
-     EOF
-  }
-}
+# data "null_data_source" "linux-values" {
+#   inputs = {
+#     data = <<-EOF
+#      #!/bin/bash
+#      mkdir -p /etc/puppetlabs/facter/facts.d
+#      echo ' {"elevated_groups": {"sudo_groups":${jsonencode(var.ad_security_groups)}}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json
+#      EOF
+#   }
+# }
 
 # #-----------------------------------------Virtual machine Linux----------------------------------------------------------------------------------
 
 resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
-  count                 = var.OperatingSystem == "linux" ? var.vm_count : 0
+  count                 = lower(var.operating_system) == "linux" ? var.vm_count : 0
   name                  = data.external.servernaming.result[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
@@ -203,13 +202,32 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
     computer_name  = data.external.servernaming.result[count.index]
     admin_username = random_string.username.result
     admin_password = random_password.password.result
-    custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
+    #custom_data    = base64encode(data.null_data_source.linux-values.outputs["data"])
   }
+
   tags = {
     "DCR" : "AZ-WEBFALB0001-0.0.1"
   }
+
   os_profile_linux_config {
     disable_password_authentication = false
+  }
+
+  connection {
+    type     = "ssh"
+    host     = azurerm_network_interface.del_network_interface[count.index].private_ip_address
+    user     = random_string.username.result
+    password = random_password.password.result
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo '${random_password.password.result}' | sudo -S mkdir -p /etc/puppetlabs/facter/facts.d",
+      "sudo touch /etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      "sudo chmod 777 /etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      "echo '{\"elevated_groups\":${jsonencode(var.ad_security_groups)}}' >/etc/puppetlabs/facter/facts.d/elevated_groups.json",
+      # "exit 0",
+    ]
   }
   //this is to call puppet installation API
   provisioner "local-exec" {
@@ -226,10 +244,7 @@ data "null_data_source" "values" {
     New-Item -ItemType directory -Path 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d'
   }
   Write-Output '{
- "elevated_groups": {
- "Administrators":  
-   ${jsonencode(var.ad_sg_names)}
- }
+ "elevated_groups": ${jsonencode(var.ad_security_groups)}
 }'| out-file -encoding ASCII C:\\ProgramData\\PuppetLabs\\facter\\facts.d\\elevated_groups.json
      EOF
   }
@@ -240,9 +255,10 @@ locals {
     script = "${compact(concat(split("\n", data.null_data_source.values.outputs["data"])))}"
   }
 }
+
 # #-----------------------------------------Virtual machine windows--------------------------------------------------------------------
 resource "azurerm_virtual_machine" "del_virtual_machine" {
-  count                 = var.OperatingSystem == "windows" ? var.vm_count : 0
+  count                 = lower(var.operating_system) == "windows" ? var.vm_count : 0
   name                  = data.external.servernaming.result[count.index]
   location              = var.location
   resource_group_name   = var.resource_group
@@ -285,7 +301,7 @@ resource "azurerm_virtual_machine" "del_virtual_machine" {
 }
 
 resource "azurerm_virtual_machine_extension" "windows" {
-  count                      = var.OperatingSystem == "windows" ? var.vm_count : 0
+  count                      = lower(var.operating_system) == "windows" ? var.vm_count : 0
   name                       = "${data.external.servernaming.result[count.index]}run-commands"
   virtual_machine_id         = azurerm_virtual_machine.del_virtual_machine[count.index].id
   publisher                  = "Microsoft.CPlat.Core"
@@ -297,7 +313,7 @@ resource "azurerm_virtual_machine_extension" "windows" {
 
 #-----------------------------------puppet api call for windows machines-----------------------------------------
 resource "null_resource" "call-puppet-windows" {
-  count      = var.OperatingSystem == "windows" ? var.vm_count : 0
+  count      = lower(var.operating_system) == "windows" ? var.vm_count : 0
   depends_on = [azurerm_virtual_machine.del_virtual_machine, azurerm_virtual_machine_extension.windows]
   triggers = {
     values = azurerm_virtual_machine_extension.windows[count.index].id
