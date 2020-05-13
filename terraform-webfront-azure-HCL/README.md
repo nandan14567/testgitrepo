@@ -53,14 +53,14 @@ Name | Description | Type | Examples |
  environment_puppet | (Required) Valid Environment required for puppet installation | String | NPD
  ad_security_groups| (Required)  Active Directory security group required to access the created VMs | Map |  {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}/{"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
-----------------------------------------------------------------------
+------------------------------------------------------------------------------
 
  ### Format of custom_image/marketplace_image
 
 Variable | Type | Example
 ---------|----------|----------
- custom_image | map | {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}
- marketplace_image | map | {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ custom_image | Map | {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}
+ marketplace_image | Map | {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
 
 
  ### Format of ad_security_groups
@@ -69,3 +69,5 @@ Platform | Variable | Example
 ---------|----------|----------
  Windows | ad_security_groups | {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}
  Linux | ad_security_groups | {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+
+ ------------------------------------------------------------------------------
