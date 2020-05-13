@@ -2,7 +2,7 @@
 
 Terraform HCL templates to deploy Azure Webfront which consists of an application load balancer and registered Azure VMs behind this application load balancer
 
-**These types of resources are Used:**
+**These types of Resources are Used:**
 
 [azurerm_lb](https://www.terraform.io/docs/providers/azurerm/r/lb.html) \
 [azurerm_lb_backend_address_pool](https://www.terraform.io/docs/providers/azurerm/r/lb_backend_address_pool.html) \
@@ -17,13 +17,13 @@ Terraform HCL templates to deploy Azure Webfront which consists of an applicatio
 [azurerm_virtual_machine_extension ](https://www.terraform.io/docs/providers/azurerm/r/virtual_machine_extension.html)
 
 
-**These types of Data_Sources are used:**
+**These types of Data Sources are used:**
 
 [azurerm_virtual_network](https://www.terraform.io/docs/providers/azurerm/r/virtual_network.html) \
 [azurerm_subnet](https://www.terraform.io/docs/providers/azurerm/r/subnet.html)\
 [azurerm_shared_image](https://www.terraform.io/docs/providers/azurerm/r/virtual_network.html)
 
-**Custom Provider Data_Source Used:**
+**Custom Provider Data Source Used:**
 
 external- Used to call the deloitte onecloud APIs
 
@@ -38,7 +38,7 @@ Name | Description | Type | Examples |
  tenant_id | (Required) Valid Azure tenant id  | String | 36da45f1-dd2c-4d1f-af13-5abe46
  client_id | (Required) Azure valid client id  | String | --
  client_secret | (Required) Azure valid client client secret | String | --
- resource | (Required) Valid Resource to generate token | String | nj345-715d-45a7-887e-01sgsgsg
+ resource | (Required) Valid Resource to generate token | String | 45hg-715d-45a7-887e-01sgsgsg
  location | (Required)  Azure location  where resources get deployed | String | East US
  resource_group(Existing) | (Required)  Container that holds related resources | String | AZRG-UE-ITS-001
  vnet_name (Existing) | (Required) Virtual Network name having deloitte on-prem connectivity | String | azeusnpnt01-Horizon
