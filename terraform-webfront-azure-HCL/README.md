@@ -52,4 +52,4 @@ Name | Description | Type | Examples |
  environment_puppet | (Required) Valid Environment required for puppet installation | String | NPD
  ad_security_groups| (Required)  Active Directory security group required to access the created VMs | Map |  {"Administrators": ["US\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}/"ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
----------------------------------------------------------------
+-----------------------------------------------------------------
