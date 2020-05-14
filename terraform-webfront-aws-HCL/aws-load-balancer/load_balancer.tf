@@ -19,6 +19,7 @@ resource "aws_lb" "del_load_balancer" {
   }
 }
 
+
 # Getting subnets 
 data "aws_subnet_ids" "del_subnet_ids" {
   vpc_id = var.vpc_id
@@ -32,6 +33,18 @@ resource "aws_lb_target_group" "del_target_group" {
   vpc_id   = var.vpc_id
   tags     = {
     DCR: "AWS-WEBFALB0001-0.0.2"
+  }
+}
+
+
+#Calling Servernaming API
+data "external" "servernaming" {
+  program = ["pwsh","${path.module}/Get_servers.ps1"]
+  query = {
+    numberServers = var.instance_count
+    environment   = var.environment_servernaming
+    system        = var.system_servernaming
+    componentKey  = var.componentKey_servernaming
   }
 }
 
@@ -97,16 +110,6 @@ data "null_data_source" "userdata_windows" {
   }
 }
 
-#Calling Servernaming API
-data "external" "servernaming" {
-  program = ["Powershell.exe", "${path.module}/Get_servers.ps1"]
-  query = {
-    numberServers = var.instance_count
-    environment   = var.environment_servernaming
-    system        = var.system_servernaming
-    componentKey  = var.componentKey_servernaming
-  }
-}
 
 #Creating security group for ec2 instances
 module "instance_security_group" {
@@ -141,34 +144,28 @@ resource "aws_lb_target_group_attachment" "test" {
 }
 
 //Token Generation API 
-resource "null_resource" "test-api1" {
-  triggers = {
-    values = "${aws_instance.aws-instance[0].id}"
+data "external" "token" {
+  program = ["pwsh","${path.module}/Generate_token.ps1"]
+  query = {
+    resource      = var.resource_token
+    clientid      = var.client_id
+    clientsecret  = var.client_secret
   }
-  //this is to get token
-  provisioner "local-exec" {
-    command     = "${path.module}/Generate_token.ps1 -resource ${var.resource_token} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-    interpreter = ["PowerShell", "-Command"]
-  }
-}
+} 
 
 //Puppet installation api Payload Creation
-resource "local_file" "terraform_tf" {
-  count      = var.instance_count
-  content    = <<-EOF
-  {
-        "AccountID":  "${var.accountid_puppet}",
-        "ResourceLocation":  "${var.region}",
-        "Domain":  "${var.domain_puppet}",
-        "ResourceIdentifier":"${aws_instance.aws-instance[count.index].id}",
-        "Environment": "${var.environment_puppet}",
-        "Provider":  "aws",
-        "OperatingSystem": "${var.operatingsystem}"
+data "null_data_source" "payload_file" {
+  count = var.instance_count
+  inputs = {
+        AccountID=  "${var.accountid_puppet}"
+        ResourceLocation=  "${var.region}"
+        Domain=  "${var.domain_puppet}"
+        ResourceIdentifier="${aws_instance.aws-instance[count.index].id}"
+        Environment= "${var.environment_puppet}"
+        Provider=  "aws"
+        OperatingSystem= "${var.operatingsystem}"
   }
-  EOF
-  filename   = "${path.root}/temppayload${count.index}.json"
 }
-
 //puppet installation api
 resource "null_resource" "test-api3" {
   count      = var.instance_count
@@ -177,10 +174,10 @@ resource "null_resource" "test-api3" {
     values = "${aws_instance.aws-instance[count.index].id}"
   }
   provisioner "local-exec" {
-    command     = "Start-Sleep -s 250"
-    interpreter = ["PowerShell", "-Command"]
+    command     = "Start-Sleep -s 10"
+    interpreter = ["pwsh", "-C"]
   }
   provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+    command = "curl --header 'Content-Type:application/json' --header ${data.external.token.result[0]}  --request POST --data ${jsonencode(data.null_data_source.payload_file[count.index].outputs)}  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
   }
 }

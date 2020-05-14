@@ -31,7 +31,7 @@ module "application_load_balancer" {
   environment_servernaming     = var.environment_servernaming
   system_servernaming          = var.system_servernaming
   componentKey_servernaming    = var.componentKey_servernaming
-  securitygroup_administrators = var.securitygroup_administrators
+  securitygroup_administrators = var.ad_securitygroups
 }
 
 //  terraform {
