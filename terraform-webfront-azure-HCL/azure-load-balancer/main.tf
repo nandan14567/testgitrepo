@@ -226,7 +226,7 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   }
   //this is to call puppet installation API
   provisioner "local-exec" {
-    command     = "Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST"
+    command     = "$x= Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST; $x.Content"
     interpreter = ["PowerShell", "-Command"]
   }
 }
@@ -316,7 +316,7 @@ resource "null_resource" "call-puppet-windows" {
   }
   //this is to call puppet installation API
   provisioner "local-exec" {
-    command     = "Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST"
+    command     = "$x= Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST; $x.Content"
     interpreter = ["PowerShell", "-Command"]
   }
 }
