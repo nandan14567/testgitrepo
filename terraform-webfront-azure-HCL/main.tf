@@ -34,9 +34,9 @@ module "azure-load-balancer-module" {
   ad_security_groups = var.ad_security_groups
 }
 
-# terraform {
-#   backend "azurerm" {}
-# }
+terraform {
+  backend "azurerm" {}
+}
 
 
 

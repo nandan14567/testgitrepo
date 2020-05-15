@@ -80,14 +80,12 @@ resource "azurerm_lb_rule" "del_lb_rule" {
 }
 
 #-------------------------------------------------------Generate Token Here-----------------------------------------------------
-resource "null_resource" "test-api1" {
-  #count      = "${var.vm_count}"
-  triggers = {
-    values = "${data.external.servernaming.result[0]}"
-  }
-  provisioner "local-exec" {
-    command     = "${path.module}/Generate_token.ps1 -resource ${var.resource} -clientid ${var.client_id} -clientsecret ${var.client_secret}"
-    interpreter = ["PowerShell", "-Command"]
+data "external" "token" {
+  program = ["Powershell.exe", "${path.module}/Generate_token.ps1"]
+  query = {
+    resource     = var.resource
+    clientid     = var.client_id
+    clientsecret = var.client_secret
   }
 }
 
@@ -102,23 +100,20 @@ data "external" "servernaming" {
   }
 }
 
-#--------------------------------------------------------local file and null resource here-----------------------------------
-resource "local_file" "terraform_tf" {
-  count    = var.vm_count
-  content  = <<EOF
-     {
-     "AccountID":  "${var.subscription_id}",
-     "ResourceLocation":  "${var.resource_group}",
-     "Domain":  "${var.domain}",
-     "ResourceIdentifier":  "${data.external.servernaming.result[count.index]}",
-     "Environment":  "${var.environment_puppet}",
-     "Provider":  "azure",
-     "OperatingSystem":  "${var.operating_system}"
+#------------------------------------------null data source to generate puppet payload----------------------------------------
+data "null_data_source" "payload_file" {
+  count = var.vm_count
+  inputs = {
+    AccountID          = "${var.subscription_id}"
+    ResourceLocation   = "${var.resource_group}"
+    Domain             = "${var.domain}"
+    ResourceIdentifier = "${data.external.servernaming.result[count.index]}"
+    Environment        = "${var.environment_puppet}"
+    Provider           = "azure"
+    OperatingSystem    = "${var.operating_system}"
   }
-     EOF
-  filename = "${path.root}/temppayload${count.index}.json"
-
 }
+
 #------------------------------------------pool association, NIC and availability set--------------------------------------------
 resource "azurerm_network_interface_backend_address_pool_association" "del_association_to_lb" {
   count                   = var.vm_count
@@ -231,7 +226,8 @@ resource "azurerm_virtual_machine" "del_linux_virtual_machine" {
   }
   //this is to call puppet installation API
   provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+    command     = "$x= Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST; $x.Content"
+    interpreter = ["PowerShell", "-Command"]
   }
 }
 
@@ -320,6 +316,7 @@ resource "null_resource" "call-puppet-windows" {
   }
   //this is to call puppet installation API
   provisioner "local-exec" {
-    command = "curl --header 'Content-Type:application/json' --header @output_token_sn.txt  --request POST --data @temppayload${count.index}.json  https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision"
+    command     = "$x= Invoke-WebRequest \"https://onecloudapi.deloitte.com/cloudscript/20190215/api/provision\" -Headers @{\"Authorization\" = \"Bearer ${data.external.token.result[0]}\"} -ContentType \"application/json\" -Body '${jsonencode(data.null_data_source.payload_file[count.index].outputs)}' -Method POST; $x.Content"
+    interpreter = ["PowerShell", "-Command"]
   }
 }
