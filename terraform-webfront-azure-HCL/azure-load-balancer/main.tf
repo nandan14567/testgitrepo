@@ -49,7 +49,7 @@ resource "azurerm_lb" "del_lb" {
 resource "azurerm_lb_backend_address_pool" "del_bend_addr_pool" {
   resource_group_name = var.resource_group
   loadbalancer_id     = azurerm_lb.del_lb.id
-  name                = "BackEndAddressPool"
+  name                = "${var.recipe_name}-Backendpool"
 }
 
 resource "azurerm_lb_probe" "del_lb_probe" {
@@ -118,7 +118,7 @@ data "null_data_source" "payload_file" {
 resource "azurerm_network_interface_backend_address_pool_association" "del_association_to_lb" {
   count                   = var.vm_count
   network_interface_id    = element(azurerm_network_interface.del_network_interface.*.id, count.index)
-  ip_configuration_name   = "testconfiguration"
+  ip_configuration_name   = "${data.external.servernaming.result[count.index]}-ipconfig"
   backend_address_pool_id = azurerm_lb_backend_address_pool.del_bend_addr_pool.id
 }
 
@@ -128,7 +128,7 @@ resource "azurerm_network_interface" "del_network_interface" {
   location            = var.location
   resource_group_name = var.resource_group
   ip_configuration {
-    name                          = "testconfiguration"
+    name                          = "${data.external.servernaming.result[count.index]}-ipconfig"
     subnet_id                     = data.azurerm_subnet.del_subnet.id
     private_ip_address_allocation = "Dynamic"
     # load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.del_bend_addr_pool.id}"]
