@@ -47,7 +47,7 @@ Name | Description | Type | Examples |
  client_id | (Required) Azure client id for token api payload | string | --
  client_secret | (Required) Azure client id for token api payload | string | --
  resource_token | (Required) Resource for token api payload | string | --
- ad_securitygroups | (Required) Elevated Security will be used to give an AD Security Group elevated privileges on a Virtual Machine for both Windows and Linux. | Map | {"Administrators":"US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"}
+ ad_securitygroups | (Required) Elevated Security will be used to give an AD Security Group elevated privileges on a Virtual Machine for both Windows and Linux. | Map\HCL | {Administrators="US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"}
    
 ---------------------------------------------------------------
 
@@ -55,8 +55,8 @@ Name | Description | Type | Examples |
 
 Platform | Format | Example
 ---------|----------|----------
- Windows | map | {"Administrators":"US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"}
- Linux | map | { "sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],     "access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+ Windows | map\HCL | {Administrators="US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"}
+ Linux | map\HCL | {sudo_groups= ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],access_groups= ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
  
 Note: For more details please follow Elevated_Security document
  
