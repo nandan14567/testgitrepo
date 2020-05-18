@@ -46,11 +46,11 @@ Name | Description | Type | Examples |
  componentkey_sn | (Required) Component key name reqired to call Server Naming API| String | WEB
  vm_count | (Required) Number of virtual machine to be depolyed | Number | 2
  operating_system | (Required) Valid Operating System Name | String | Windows/Linux
- custom_image/marketplace_image | (Required) Image details required for virtual machines | Map | "custom_image": {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}/"marketplace_image" : {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ custom_image/marketplace_image | (Required) Image details required for virtual machines | Map/HCL | custom_image= {image_name= "deloitte-windows2012",gallery_name= "Goldenimages",image_resource_group= "GoldenImageTestvg"}/marketplace_image = {publisher = "RedHat",offer= "RHEL",sku="7-RAW"}
  frontend_name | (Required) Specifies the name of the frontend ip configuration. | String | SubnetIPAddress
  domain | (Required)  Valid domain required for puppet installation | String | us.deloitte.com
  environment_puppet | (Required) Valid Environment required for puppet installation | String | NPD
- ad_security_groups| (Required)  Active Directory security group required to access the created VMs | Map |  {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"]}/"ad_security_groups": {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+ ad_security_groups| (Required)  Active Directory security group required to access the created VMs | Map/HCL |  {Administrators= ["US\\\SG-US-868978391936-Admin","US\\\SG-US-197151468794-Admin"]}/ad_security_groups: {sudo_groups= ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],access_groups= ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
 --------------------------------------------------------------------
 
@@ -58,15 +58,15 @@ Name | Description | Type | Examples |
 
 Name | Type | Example
 ---------|----------|----------
- custom_image | map | {"image_name": "deloitte-windows2012","gallery_name": "Goldenimages","image_resource_group": "GoldenImageTestvg"}
- marketplace_image | map | {"publisher" : "RedHat","offer": "RHEL","sku":"7-RAW"}
+ custom_image | map/HCL | {image_name= "deloitte-windows2012",gallery_name= "Goldenimages",image_resource_group= "GoldenImageTestvg"}
+ marketplace_image | map/HCL | {publisher = "RedHat",offer= "RHEL",sku="7-RAW"}
 
 
  ### Format of ad_security_groups
 
 Platform | Name | Example
 ---------|----------|----------
- Windows | ad_security_groups | {"Administrators": ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}
- Linux | ad_security_groups | {"sudo_groups": ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],"access_groups": ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
+ Windows | ad_security_groups | {Administrators= ["US\\\SG-US-868978391936-Admin","US\\SG-US-197151468794-Admin"]}
+ Linux | ad_security_groups | {sudo_groups= ["%sg-us-868978391936-admin","%sg-us-197151468794-admin"],access_groups= ["sg-us-868978391936-admin","sg-us-197151468794-admin"]}
 
  --------------------------------------------------------------------
