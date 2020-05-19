@@ -12,7 +12,7 @@ end
 }
 azureInstanceModules.each{|n|
   instances = n['instances']
-  instances.each {|n| puts n
+  instances.each {|n| 
     control "azurerm_virtual_network_validation " do                       
         impact 0.7                                
         title "Validate azurerm_virtual_network"             
