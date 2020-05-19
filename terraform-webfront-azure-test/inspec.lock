@@ -1,8 +1,0 @@
----
-lockfile_version: 1
-depends:
-- name: inspec-azure
-  resolved_source:
-    git: https://github.com/inspec/inspec-azure.git
-    ref: 7dcac73eacb2cbd57d7e5cd26270efd2ca7ed2b0
-  version_constraints: []
