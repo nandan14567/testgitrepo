@@ -2,7 +2,7 @@
 require 'rubygems'
 require 'json'
 title "Azure template validation"
-testData = inspec.profile.file('Azure.tfstate')
+testData = inspec.profile.file('AZILB-Recipe.tfstate')
 azureparams = JSON.parse(testData)
 azureInstanceModules=[]
 azureparams['resources'].each {|n|
