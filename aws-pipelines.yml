@@ -36,3 +36,12 @@ steps:
     backendAzureRmStorageAccountName: samstorageacc
     backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
     backendAzureRmKey: 'AWSILB-Recipe.tfstate'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'terraform plan'
+  inputs:
+    command: plan
+    workingDirectory: '$(System.DefaultWorkingDirectory)/_recipes-scripts/drop'
+    environmentServiceName: 'Recipe_Azure_Service_Conn'
+    secureVarsFile: 'awslb_yamltest.tfvars.json'
+    commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
