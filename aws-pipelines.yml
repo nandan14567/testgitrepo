@@ -38,6 +38,11 @@ steps:
     backendAzureRmKey: 'AWSILB-Recipe.tfstate'
 
 - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'terraform validate'
+  inputs:
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
   displayName: 'terraform plan'
   inputs:
     command: plan
