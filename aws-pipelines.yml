@@ -29,7 +29,7 @@ steps:
   inputs:
     command: init
     terraformVersion: 0.12.19
-    workingDirectory: '$(System.DefaultWorkingDirectory)/drop/terraform-webfront-aws-HCL'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
     backendType: azurerm
     backendServiceArm: 'Recipe_Azure_Service_Conn'
     backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
