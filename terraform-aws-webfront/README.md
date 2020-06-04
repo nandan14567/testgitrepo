@@ -22,7 +22,7 @@ restapi - Used to call the deloitte onecloud API Post and Get API'S
 
 ## **Usage**
 ```
-module "aws_load_balancer" {
+module "application_load_balancer" {
   source                       = "./aws-load-balancer"
   region                       = var.region
   recipe_name                  = var.recipe_name
@@ -44,9 +44,7 @@ module "aws_load_balancer" {
   domain_puppet                = var.domain_puppet
   environment_puppet           = var.environment_puppet
   operatingsystem              = var.operatingsystem
-  environment_servernaming     = var.environment_servernaming
-  system_servernaming          = var.system_servernaming
-  componentKey_servernaming    = var.componentKey_servernaming
+  servernaming                 = {environment= "AWSPPRD",system= "USPPRD",vmAllocationRequest= [{componentKey= "WEB",numberServers="2"}]}
   securitygroup_administrators = {Administrators="US\\\SG-US-868971936-Admin","US\\\SG-US-197468794-Admin"}
 }
 ```
