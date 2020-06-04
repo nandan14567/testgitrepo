@@ -23,8 +23,8 @@ Note : *Examples are for reference only*
 
 Name | Description | Type | Examples | Required |
 ---------|---------|---------|---------|------
- security_group_name | (Required) Unique name for security group to name resources while creating| String | ec2-security-group | yes
- tcp_ports | (Required) Ports that your Instances/load balancer Listen to | list(string) | ["443","3389"]/["443","22"] | yes
- cidrs | (Required) Cidr for inboud and outbound internet traffic |  list(string)| ["10.0.0.0/8"] | yes
- vpc_id | (Required)  vpc_id having deloitte on-prem connectivity | string | vpc-38gs47ed | yes
+ security_group_name | (Required) Unique name for security group to name resources while creating| String | ec2-security-group |  yes
+ tcp_ports | (Required) Ports that your Instances/load balancer Listen to | list(string) | ["443","3389"]/["443","22"] |  yes
+ cidrs | (Required) Cidr for inboud and outbound internet traffic |  list(string)| ["10.0.0.0/8"] |  yes
+ vpc_id | (Required)  vpc_id having deloitte on-prem connectivity | string | vpc-38gs47ed |  yes
  
