@@ -47,7 +47,7 @@ module "aws_load_balancer" {
   environment_servernaming     = var.environment_servernaming
   system_servernaming          = var.system_servernaming
   componentKey_servernaming    = var.componentKey_servernaming
-  securitygroup_administrators = var.ad_securitygroups
+  securitygroup_administrators = {Administrators="US\\\SG-US-868971936-Admin","US\\\SG-US-197468794-Admin"}
 }
 ```
 ## **Inputs** 
@@ -87,6 +87,6 @@ Name | Description | Type | Examples |
 
 Platform | Format | Example
 ---------|----------|----------
- Windows | map/HCL | {Administrators="US\\\SG-US-86897891936-Admin","US\\\SG-US-1971468794-Admin"}
- Linux | map/HCL | { sudo_groups= ["%sg-us-8689783936-admin","%sg-us-1971518794-admin"],access_groups= ["sg-us-8689791936-admin","sg-us-1951468794-admin"]}
+ Windows | map/HCL | {Administrators="US\\\SG-US-868971936-Admin","US\\\SG-US-197468794-Admin"}
+ Linux | map/HCL | { sudo_groups= ["%sg-us-868978936-admin","%sg-us-197158794-admin"],access_groups= ["sg-us-868979136-admin","sg-us-195148794-admin"]}
 
