@@ -14,13 +14,13 @@ Terraform module which creates security group with deloitte cidrs, Load Balancer
 
 **These types of Data_Sources are used:**
 
-[aws_subnet_ids](https://www.terraform.io/docs/providers/aws/d/subnet_ids.html) \
+[aws_subnet_ids](https://www.terraform.io/docs/providers/aws/d/subnet_ids.html)
 
 **Custom Provider Data_Source Used:**
 
 restapi - Used to call the deloitte onecloud API Post and Get API'S
 
-# **Usage**
+## **Usage**
 
 ## **Inputs** 
 
