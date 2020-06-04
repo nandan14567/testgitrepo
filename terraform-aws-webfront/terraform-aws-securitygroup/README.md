@@ -8,6 +8,7 @@ Terraform module which creates security group with deloitte cidrs in AWS.
 [aws_security_group_rule](https://www.terraform.io/docs/providers/aws/r/security_group_rule.html)
 
 ## **Usage**
+```
 module "alb_security_group" {
   source              = "./terraform-aws-securitygroup"
   security_group_name = "ec2-security-group"
@@ -15,7 +16,7 @@ module "alb_security_group" {
   cidrs               = ["10.0.0.0/8"]
   vpc_id              = "vpc-38gs47ed"
 }
-
+```
 ## **Inputs** 
 
 Note : *Examples are for reference only*
