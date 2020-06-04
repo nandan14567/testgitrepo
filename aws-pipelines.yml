@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'vs2017-win2016'
 
 steps:
 - task: CopyFiles@2
@@ -30,7 +30,6 @@ steps:
 - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
   displayName: 'terraform init'
   inputs:
-    terraformVersion: 0.12.20
     command: init
     workingDirectory: '$(System.DefaultWorkingDirectory)/_Recipes-enhancement-aws-loadbalancer-CI/drop'
     backendType: azurerm
