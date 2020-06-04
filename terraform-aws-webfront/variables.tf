@@ -4,9 +4,15 @@ variable "region"{
 variable "recipe_name"{
     type = string
 }
-variable "recipe_cidrs"{}
-variable "instance_count"{}
-variable "instance_ports"{}
+variable "recipe_cidrs"{
+    type    = list(string)
+}
+variable "instance_count"{
+    type = number
+}
+variable "instance_ports"{
+    type    = list(string)
+}
 variable "vpc_id"{
     type = string
 }
@@ -47,7 +53,9 @@ variable "operatingsystem"{
 }
 
 //Variables for Servernaming Payload
-variable "servernaming" {}
+variable "servernaming" {
+    type = map
+}
 
 //Variables for Token Generation
 variable "client_id"{
@@ -61,4 +69,6 @@ variable "resource_token"{
 }
 
 //Variable for Security Group Yaml File
-variable "securitygroup_administrators" {}
+variable "securitygroup_administrators" {
+    type = map
+}
