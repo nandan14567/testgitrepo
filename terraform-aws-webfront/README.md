@@ -22,30 +22,30 @@ restapi - Used to call the deloitte onecloud API Post and Get API'S
 
 ## **Usage**
 ```
-module "application_load_balancer" {
+module "aws_load_balancer" {
   source                       = "./aws-load-balancer"
-  region                       = var.region
-  recipe_name                  = var.recipe_name
-  recipe_cidrs                 = var.recipe_cidrs
-  instance_count               = var.instance_count
-  instance_ports               = var.instance_ports
-  vpc_id                       = var.vpc_id
-  instance_subnet_id           = var.instance_subnet_id
-  ami_id                       = var.ami_id
-  instance_type                = var.instance_type
-  instance_role                = var.instance_role
-  key_name                     = var.key_name
-  certificate_arn              = var.certificate_arn
-  ssl_policy                   = var.ssl_policy
-  resource_token               = var.resource_token
-  client_id                    = var.client_id
-  client_secret                = var.client_secret
-  accountid_puppet             = var.accountid_puppet
-  domain_puppet                = var.domain_puppet
-  environment_puppet           = var.environment_puppet
-  operatingsystem              = var.operatingsystem
-  servernaming                 = {environment= "AWSPPRD",system= "USPPRD",vmAllocationRequest= [{componentKey= "WEB",numberServers="2"}]}
-  securitygroup_administrators = {Administrators="US\\\SG-US-868971936-Admin","US\\\SG-US-197468794-Admin"}
+  region                       = "us-east-1"
+  recipe_name                  = "recipe_aws_lb_myapp"
+  recipe_cidrs                 = ["10.0.0.0/8"]
+  instance_count               = 3
+  instance_ports               = ["443","3389"]
+  vpc_id                       = "vpc-04093af6b1ff07"
+  instance_subnet_id           = "subnet-0e6e6fe4c02ba8"
+  ami_id                       = "ami-01652280c5135f94b"
+  instance_type                = "t2.micro"
+  instance_role                = "EC2SSMAgentProfile"
+  key_name                     = "mykeypair_name"
+  certificate_arn              = "arn:aws:iam::8689724291936:server-certificate/mycertificate"
+  ssl_policy                   = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  resource_token               = "9f11e6db-751d-45a7-887e-01e0cd9bc968"
+  client_id                    = "7f11e6db-751d-45a7-887e"
+  client_secret                = "11e6db751d45a7887e01"
+  accountid_puppet             = "868978252936"
+  domain_puppet                = "us.deloitte.com"
+  environment_puppet           = "NPD"
+  operatingsystem              = "windows"
+  servernaming                 = {environment= "AWSPPRD",system= "MyApp",vmAllocationRequest= [{componentKey= "WEB",numberServers="2"}]}
+  securitygroup_administrators = {Administrators="US\\SG-US-868971936-Admin","US\\SG-US-197468794-Admin"}
 }
 ```
 ## **Inputs** 
