@@ -29,7 +29,7 @@ steps:
   inputs:
     command: init
     terraformVersion: 0.12.19
-    workingDirectory: '$(System.DefaultWorkingDirectory)/drop'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
     backendType: azurerm
     backendServiceArm: 'Recipe_Azure_Service_Conn'
     backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
