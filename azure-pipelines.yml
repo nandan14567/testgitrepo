@@ -2,6 +2,7 @@ trigger:
 - master
 pool:
   name: Azure Pipelines
+  vmImage: 'vs2017-win2016'
 steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -28,7 +29,7 @@ steps:
   inputs:
     command: init
     terraformVersion: 0.12.19
-    workingDirectory: '$(System.DefaultWorkingDirectory)/_Recipes-CI-terraform-test-init/drop'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/drop'
     backendType: azurerm
     backendServiceArm: 'Recipe_Azure_Service_Conn'
     backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
