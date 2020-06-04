@@ -20,15 +20,15 @@ steps:
     KeyVaultName: 'deloitte-key-vault'
 
 - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
-  displayName: 'Use Terraform 0.12.19'
+  displayName: 'Use Terraform 0.12.20'
   inputs:
-    terraformVersion: 0.12.19
+    terraformVersion: 0.12.20
 
 - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
   displayName: 'terraform init'
   inputs:
     command: init
-    terraformVersion: 0.12.19
+    terraformVersion: 0.12.20
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
     backendType: azurerm
     backendServiceArm: 'Recipe_Azure_Service_Conn'
