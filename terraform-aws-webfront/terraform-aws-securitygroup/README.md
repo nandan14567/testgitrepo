@@ -10,8 +10,7 @@ Terraform module which creates security group with deloitte cidrs in AWS.
 ## **Usage**
 ```
 module "alb_security_group" {
-  source              = "./terraform-aws-securitygroup"
-  
+  source              = "./terraform-aws-securitygroup"  
   security_group_name = "ec2-security-group"
   tcp_ports           = ["443","22"]
   cidrs               = ["10.0.0.0/8"]
@@ -23,7 +22,7 @@ module "alb_security_group" {
 Note : *Examples are for reference only*
 
 Name | Description | Type | Examples | Required |
----------|---------|---------|---------|---------
+---------|---------|---------|---------|------
  security_group_name | (Required) Unique name for security group to name resources while creating| String | ec2-security-group | yes
  tcp_ports | (Required) Ports that your Instances/load balancer Listen to | list(string) | ["443","3389"]/["443","22"] | yes
  cidrs | (Required) Cidr for inboud and outbound internet traffic |  list(string)| ["10.0.0.0/8"] | yes
