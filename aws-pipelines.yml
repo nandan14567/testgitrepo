@@ -26,7 +26,7 @@ stages:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
 
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true]this is the value"
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true] value is $(access-key)"
       name: setvarStep
     - script: echo $(setvarStep.myOutputVar)
       name: echovar
