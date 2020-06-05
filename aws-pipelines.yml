@@ -70,24 +70,24 @@ steps:
      $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
      $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
      $BlobName = "AWSILB-Recipe.tfstate"
-     $localTargetDirectory = "$(System.DefaultWorkingDirectory)/test/aws_HCL_test/files"
+     $localTargetDirectory = "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files"
      mkdir $localTargetDirectory
      $ContainerName  = "aws-load-balancer-with-provisioner"
      
      Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
              -Destination $localTargetDirectory -Context $ctx
     preferredAzurePowerShellVersion: 3.1.0
-    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
 - powershell: |
-   type "$(System.DefaultWorkingDirectory)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
+   type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
    
-  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
   displayName: 'PowerShell Script'
 
 - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
   displayName: 'Execute InSpec'
   inputs:
-    inspecProfilePath: '$(System.ArtifactsDirectory)/test'
+    inspecProfilePath: '$(System.ArtifactsDirectory)/terraform-webfront-aws-HCL/test'
     inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
 
