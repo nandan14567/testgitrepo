@@ -88,6 +88,6 @@ steps:
 - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
   displayName: 'Execute InSpec'
   inputs:
-    inspecProfilePath: '$(System.ArtifactsDirectory)/terraform-webfront-aws-HCL/test'
+    inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
     inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
 
