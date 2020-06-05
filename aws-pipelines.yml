@@ -27,14 +27,14 @@ stages:
         KeyVaultName: 'deloitte-key-vault' 
 
     - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true]$(access-key)"
-      name: set-accesskey
+      name: set_accesskey
     - script: echo $(setvarStep.myOutputVar1)
-      name: echo-accesskey
+      name: echo_accesskey
 
     - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true]$(secret-key)"
-      name: set-secreat
+      name: set_secreat
     - script: echo $(setvarStep.myOutputVar2)
-      name: echo-secreat
+      name: echo_secreat
 
   - job: Package
     pool:
@@ -75,11 +75,11 @@ stages:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
     - script: echo $(AWS_ACCESS_KEY_ID)
-      name: echo-accesskey
+      name: echo_accesskey
     - script: echo $(AWS_SECRET_ACCESS_KEY)
-      name: echo-secret
+      name: echo_secret
     - script: echo $(AWS_DEFAULT_REGION)
-      name: echoregion
+      name: echo_region
 
     - task: AzureKeyVault@1
       displayName: 'Azure Key Vault: deloitte-key-vault'
