@@ -24,7 +24,14 @@ stages:
       displayName: 'Azure Key Vault: deloitte-key-vault'
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault'    
+        KeyVaultName: 'deloitte-key-vault' 
+
+    - powershell: |
+       export AWS_ACCESS_KEY_ID=$(access-key)
+       export AWS_SECRET_ACCESS_KEY=$(secret-key)
+       export AWS_DEFAULT_REGION='us-east-1'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      displayName: 'PowerShell Script'   
 
 
   - job: Package
@@ -37,16 +44,6 @@ stages:
       displayName: 'Publish Pipeline Artifact'
       inputs:
         artifact: cmp-build
-
-    - task: AWSShellScript@1
-      displayName: Initializing Temporary Creds for SBX
-      inputs:
-        regionName: 'us-east-1'
-        scriptType: 'inline'
-        inlineScript: |
-          export AWS_ACCESS_KEY_ID=$(access-key)
-          export AWS_SECRET_ACCESS_KEY=$(secret-key)
-          export AWS_DEFAULT_REGION='us-east-1'
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform 0.12.20'
