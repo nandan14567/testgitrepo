@@ -28,12 +28,12 @@ stages:
 
     - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true] value is $(access-key)"
       name: setaccesskey
-    - script: echo $(setvarStep.myOutputVar)
+    - script: echo $(setvarStep.myOutputVar1)
       name: echoaccesskey
 
     - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true] value are $(secret-key)"
       name: setaccesssecreat
-    - script: echo $(setvarStep.myOutputVar)
+    - script: echo $(setvarStep.myOutputVar2)
       name: echosecreatkey
 
   - job: Package
