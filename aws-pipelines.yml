@@ -4,11 +4,6 @@ pool:
   name: Azure Pipelines
   vmImage: 'vs2017-win2016'
 
-variables:
-  AWS_ACCESS_KEY_ID: $(access-key)
-  AWS_SECRET_ACCESS_KEY: $(secret-key)
-  AWS_DEFAULT_REGION: 'us-east-1'
-
 steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -106,6 +101,11 @@ steps:
   inputs:
     inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
     inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
+  variables:
+    AWS_ACCESS_KEY_ID: $(access-key)
+    AWS_SECRET_ACCESS_KEY: $(secret-key)
+    AWS_DEFAULT_REGION: 'us-east-1'
+  
 
 - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
   displayName: 'terraform destroy'
