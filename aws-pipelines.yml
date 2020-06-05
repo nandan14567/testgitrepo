@@ -50,3 +50,38 @@ steps:
     environmentServiceName: 'Recipe_Azure_Service_Conn'
     secureVarsFile: 'awslb_yamltest.tfvars.json'
     commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+
+- task: UseRubyVersion@0
+  displayName: 'Use Ruby >= 2.4'
+
+- task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
+  displayName: 'Install InSpec'
+  inputs:
+    chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
+    downloadsFolderWindows: 'c:\windows\temp	'
+
+- task: AzurePowerShell@4
+  displayName: 'Azure PowerShell script: InlineScript'
+  inputs:
+    azureSubscription: 'Recipe_Azure_Service_Conn'
+    ScriptType: InlineScript
+    Inline: |
+     $StorageAccountName = "samstorageacc"
+     $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
+     $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
+     $BlobName = "AWSILB-Recipe.tfstate"
+     $localTargetDirectory = "$(System.DefaultWorkingDirectory)/test/aws_HCL_test/files"
+     mkdir $localTargetDirectory
+     $ContainerName  = "aws-load-balancer-with-provisioner"
+     
+     Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
+             -Destination $localTargetDirectory -Context $ctx
+    preferredAzurePowerShellVersion: 3.1.0
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+- powershell: |
+   type "$(System.DefaultWorkingDirectory)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
+   
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  displayName: 'PowerShell Script'
+
