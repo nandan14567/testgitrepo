@@ -3,6 +3,12 @@ trigger:
 pool:
   name: Azure Pipelines
   vmImage: 'vs2017-win2016'
+
+variables:
+  AWS_ACCESS_KEY_ID: 'AKIA4UUZF7OALO3TFRWD'
+  AWS_SECRET_ACCESS_KEY: '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'
+  AWS_DEFAULT_REGION: 'us-east-1'
+
 steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -108,4 +114,5 @@ steps:
     environmentServiceName: 'Recipe_Azure_Service_Conn'
     secureVarsFile: 'awslb_yamltest.tfvars.json'
     commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+  enabled: false
 
