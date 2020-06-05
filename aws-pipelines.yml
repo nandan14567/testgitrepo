@@ -41,9 +41,9 @@ stages:
       name: Azure Pipelines
       vmImage: 'vs2017-win2016'
     variables:
-      AWS_ACCESS_KEY_ID: $[ dependencies.Test.outputs['set_accesskey.myOutputVar1'] ]
-      AWS_SECRET_ACCESS_KEY: $[ dependencies.Test.outputs['set_secreat.myOutputVar2'] ]
-      AWS_DEFAULT_REGION: 'us-east-1'
+      AWS_ACCESS_KEY_ID: "AKIA4UUZF7OALO3TFRWD"
+      AWS_SECRET_ACCESS_KEY: "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"
+      AWS_DEFAULT_REGION: "us-east-1"
 
     steps:
     - task: PublishPipelineArtifact@1
