@@ -26,10 +26,15 @@ stages:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
 
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true] value is $(access-key)"
-      name: setvarStep
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true] value is $(access-key)"
+      name: setaccesskey
     - script: echo $(setvarStep.myOutputVar)
-      name: echovar
+      name: echoaccesskey
+
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true] value are $(secret-key)"
+      name: setaccesssecreat
+    - script: echo $(setvarStep.myOutputVar)
+      name: echosecreatkey
 
   - job: Package
     pool:
@@ -37,8 +42,8 @@ stages:
       vmImage: 'vs2017-win2016'
 
     variables:
-      myVarFromJobA: $[ dependencies.Test.outputs['setvarStep.myOutputVar'] ]
-
+      myVarFromJobA: $[ dependencies.Test.outputs['setvarStep.myOutputVar1'] ]
+      myVarFromJobB: $[ dependencies.Test.outputs['setvarStep.myOutputVar2'] ]
     steps:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
@@ -69,7 +74,9 @@ stages:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
     - script: echo $(myVarFromJobA)
-      name: echovar
+      name: echoaccesskey
+    - script: echo $(myVarFromJobB)
+      name: echoaccesssecret
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform plan'
