@@ -26,13 +26,18 @@ stages:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
 
-    - powershell: |
-       export AWS_ACCESS_KEY_ID=$(access-key)
-       export AWS_SECRET_ACCESS_KEY=$(secret-key)
-       export AWS_DEFAULT_REGION='us-east-1'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-      displayName: 'PowerShell Script'   
-
+    - task: AWSShellScript@1
+      displayName: Initializing Temporary Creds for NPD
+      inputs:
+        regionName: 'us-east-1'
+        scriptType: 'inline'
+        inlineScript: |
+          export AWS_ACCESS_KEY_ID=$(access-key)
+          export AWS_SECRET_ACCESS_KEY=$(secret-key)
+          export AWS_DEFAULT_REGION="us-east-1"
+        disableAutoCwd: true
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        failOnStandardError: true
 
   - job: Package
     pool:
