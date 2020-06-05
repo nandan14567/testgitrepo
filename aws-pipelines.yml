@@ -40,10 +40,11 @@ stages:
     pool:
       name: Azure Pipelines
       vmImage: 'vs2017-win2016'
-
     variables:
-      myVarFromJobA: $[ dependencies.Test.outputs['setvarStep.myOutputVar1'] ]
-      myVarFromJobB: $[ dependencies.Test.outputs['setvarStep.myOutputVar2'] ]
+      AWS_ACCESS_KEY_ID: $[ dependencies.Test.outputs['setvarStep.myOutputVar1'] ]
+      AWS_SECRET_ACCESS_KEY: $[ dependencies.Test.outputs['setvarStep.myOutputVar2'] ]
+      AWS_DEFAULT_REGION: 'us-east-1'
+
     steps:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
@@ -73,11 +74,18 @@ stages:
       inputs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
-    - script: echo $(myVarFromJobA)
+    - script: echo $(AWS_ACCESS_KEY_ID)
       name: echoaccesskey
-    - script: echo $(myVarFromJobB)
+    - script: echo $(AWS_SECRET_ACCESS_KEY)
       name: echoaccesssecret
+    - script: echo $(AWS_DEFAULT_REGION)
+      name: echoregion
 
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: deloitte-key-vault'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault'
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform plan'
       inputs:
