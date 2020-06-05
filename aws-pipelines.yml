@@ -85,3 +85,9 @@ steps:
   workingDirectory: '$(System.DefaultWorkingDirectory)'
   displayName: 'PowerShell Script'
 
+- task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
+  displayName: 'Execute InSpec'
+  inputs:
+    inspecProfilePath: '$(System.ArtifactsDirectory)/test'
+    inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
+
