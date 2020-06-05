@@ -26,19 +26,6 @@ stages:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
 
-    - task: AWSShellScript@1
-      displayName: Initializing Temporary Creds for NPD
-      inputs:
-        regionName: 'us-east-1'
-        scriptType: 'inline'
-        inlineScript: |
-          export AWS_ACCESS_KEY_ID=$(access-key)
-          export AWS_SECRET_ACCESS_KEY=$(secret-key)
-          export ENV['AWS_REGION']="us-east-1"
-        disableAutoCwd: true
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-        failOnStandardError: true
-
   - job: Package
     pool:
       name: Azure Pipelines
@@ -73,6 +60,15 @@ stages:
       inputs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform plan'
+      inputs:
+        command: plan
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+        
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
 
