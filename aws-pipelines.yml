@@ -1,2 +1,122 @@
 
+---
+trigger:
+- features/*
+
+stages:
+- stage: BUILD
+  jobs:
+  - job: Test
+    pool:
+      name: Azure Pipelines
+      vmImage: 'vs2017-win2016'
+    steps:
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+      inputs:
+        SourceFolder: 'terraform-webfront-aws-HCL'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: deloitte-key-vault'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault' 
+
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar;isOutput=true]this is the value"
+      name: setvarStep
+    - script: echo $(setvarStep.myOutputVar)
+      name: echovar
+
+  - job: Package
+    pool:
+      name: Azure Pipelines
+      vmImage: 'vs2017-win2016'
+
+    variables:
+      myVarFromJobA: $[ dependencies.Test.outputs['setvarStep.myOutputVar'] ]
+
+    steps:
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        artifact: cmp-build
+
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+      displayName: 'Use Terraform 0.12.20'
+      inputs:
+        terraformVersion: 0.12.20
+
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform init'
+      inputs:
+        command: init
+        terraformVersion: 0.12.20
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        backendType: azurerm
+        backendServiceArm: 'Recipe_Azure_Service_Conn'
+        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
+        backendAzureRmStorageAccountName: samstorageacc
+        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
+        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
+
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform validate'
+      inputs:
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+    - script: echo $(myVarFromJobA)
+      name: echovar
+
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform plan'
+      inputs:
+        command: plan
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+        
+    - task: UseRubyVersion@0
+      displayName: 'Use Ruby >= 2.4'
+
+    - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
+      displayName: 'Install InSpec'
+      inputs:
+        chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
+        downloadsFolderWindows: 'c:\windows\temp	'
+
+    - task: AzurePowerShell@4
+      displayName: 'Azure PowerShell script: InlineScript'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        ScriptType: InlineScript
+        Inline: |
+          $StorageAccountName = "samstorageacc"
+          $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
+          $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
+          $BlobName = "AWSILB-Recipe.tfstate"
+          $localTargetDirectory = "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files"
+          mkdir $localTargetDirectory
+          $ContainerName  = "aws-load-balancer-with-provisioner"
+          
+          Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
+                  -Destination $localTargetDirectory -Context $ctx
+        preferredAzurePowerShellVersion: 3.1.0
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+    - powershell: |
+       type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
+       echo "end"
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      displayName: 'PowerShell Script'
+
+    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
+      displayName: 'Execute InSpec'
+      inputs:
+        inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
 
