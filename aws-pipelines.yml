@@ -95,7 +95,11 @@ stages:
 
     - powershell: |
        type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
-   
+       echo $(access-key)
+       echo "start"
+       echo $(AWS_DEFAULT_REGION)
+       echo $(AWS_SECRET_ACCESS_KEY)
+       echo "end"
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
       displayName: 'PowerShell Script'
 
