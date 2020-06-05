@@ -51,6 +51,15 @@ steps:
     secureVarsFile: 'awslb_yamltest.tfvars.json'
     commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
 
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'terraform apply'
+  inputs:
+    command: apply
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+    environmentServiceName: 'Recipe_Azure_Service_Conn'
+    secureVarsFile: 'awslb_yamltest.tfvars.json'
+    commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+
 - task: UseRubyVersion@0
   displayName: 'Use Ruby >= 2.4'
 
@@ -90,4 +99,13 @@ steps:
   inputs:
     inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
     inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'terraform destroy'
+  inputs:
+    command: destroy
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+    environmentServiceName: 'Recipe_Azure_Service_Conn'
+    secureVarsFile: 'awslb_yamltest.tfvars.json'
+    commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
 
