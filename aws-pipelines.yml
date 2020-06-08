@@ -80,11 +80,11 @@ stages:
         environmentServiceName: 'Recipe_Azure_Service_Conn'
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-      enabled: false
+    
 
 
 - stage: TEST
-  dependsOn: BUILD
+  dependsOn: APPLY
   jobs:
   - job: Test
     pool:
@@ -106,7 +106,7 @@ stages:
         downloadsFolderWindows: 'c:\windows\temp	'
 
     - task: AzurePowerShell@4
-      displayName: 'Azure PowerShell script: InlineScript'
+      displayName: 'State file from Backend'
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         ScriptType: InlineScript
@@ -127,7 +127,7 @@ stages:
     - powershell: |
        type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-      displayName: 'PowerShell Script'
+      displayName: 'Print State file'
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
@@ -153,5 +153,3 @@ stages:
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
       enabled: false
-
-
