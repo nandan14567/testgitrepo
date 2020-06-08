@@ -20,7 +20,7 @@ awsInstanceModules.each{|n|
       describe aws_ec2_instance(n['attributes']['id']) do
         it { should exist }
         it { should be_running }
-        its ('image_id') { should eq n['attributes']['id']['ami'] }
+        its ('image_id') { should eq n['attributes']['ami'] }
         its ('instance_type') {should eq n['attributes']['instance_type']}
         its ('private_ip_address') { should eq n['attributes']['private_ip'] }
       end
@@ -32,18 +32,7 @@ awsInstanceModules.each{|n|
       describe aws_ec2_instance(n['attributes']['id']) do
         its('security_group_ids') { should include n['attributes']['vpc_security_group_ids'][0] }
       end
-    end  
-    tags = n['attributes']['tags'] 
-    control "Ec2_instance_tags" do                       
-      impact 0.7                                
-      title "test for ec2 instance tags"             
-      desc "An optional description..."
-      describe aws_ec2_instance(n['attributes']['id']) do
-        its ('tags') { should include tags.each {|key,value| 
-        } 
-    }
-      end
-    end  
+    end   
     }
   }
     albInstanceModules=[]
@@ -83,8 +72,6 @@ awsInstanceModules.each{|n|
           title "test for application load balancer subnets"             
           desc "An optional description..."
           describe aws_alb(n['attributes']['arn']) do
-            its('subnets') { should include n['attributes']['ids'][0] }
-            its('subnets') { should include n['attributes']['ids'][1] }
             its('subnets.count') {should be > 1}
           end
         end
@@ -139,7 +126,6 @@ ec2SecurityModulesRules.each{|n|
       describe aws_security_group(group_id: n['attributes']['security_group_id']) do
         it { should allow_in(port: n['attributes']['from_port'], ipv4_range: n['attributes']['cidr_blocks'][0]) }
         it { should allow_in(protocol: n['attributes']['protocol']) }
-        its ('description') {should eq n['attributes']['description']}
       end
     end
     }
@@ -179,9 +165,8 @@ ec2SecurityModulesRules.each{|n|
         title "inbound/outbound rules validation "             
         desc "An optional description..."
         describe aws_security_group(group_id: n['attributes']['security_group_id']) do
-          it { should allow_in(port: n['attributes'][''], ipv4_range: ALB_SECURITY_GROUP_CIDR_BLOCK) }
-          it { should allow_in(protocol: ALB_SECURITY_GROUP_PROTOCAL) }
-          it { should_not allow_in(port:ALB_SECURITY_GROUP_PORT, ipv4_range: CIDR_BLOCK) }
+          it { should allow_in(port: n['attributes']['from_port'], ipv4_range: n['attributes']['cidr_blocks'][0] ) }
+          it { should allow_in(protocol: n['attributes']['protocol']) }
         end
       end
       }
