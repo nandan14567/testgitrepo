@@ -165,9 +165,8 @@ ec2SecurityModulesRules.each{|n|
         title "inbound/outbound rules validation "             
         desc "An optional description..."
         describe aws_security_group(group_id: n['attributes']['security_group_id']) do
-          it { should allow_in(port: n['attributes'][''], ipv4_range: ALB_SECURITY_GROUP_CIDR_BLOCK) }
-          it { should allow_in(protocol: ALB_SECURITY_GROUP_PROTOCAL) }
-          it { should_not allow_in(port:ALB_SECURITY_GROUP_PORT, ipv4_range: CIDR_BLOCK) }
+          it { should allow_in(port: n['attributes']['from_port'], ipv4_range: n['attributes']['cidr_blocks'][0] ) }
+          it { should allow_in(protocol: n['attributes']['protocol']) }
         end
       end
       }
