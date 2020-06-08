@@ -76,8 +76,20 @@ stages:
       displayName: 'Azure Key Vault: deloitte-key-vault2'
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault' 
-
+        KeyVaultName: 'deloitte-key-vault'
+      enabled: false 
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform init2'
+      inputs:
+        command: init
+        terraformVersion: 0.12.20
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        backendType: azurerm
+        backendServiceArm: 'Recipe_Azure_Service_Conn'
+        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
+        backendAzureRmStorageAccountName: samstorageacc
+        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
+        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform apply'
       inputs:
