@@ -2,6 +2,10 @@
 trigger:
 - features/*
 
+pool:
+  name: Azure Pipelines
+  vmImage: 'vs2017-win2016'
+  
 stages:
 - stage: BUILD
   jobs:
