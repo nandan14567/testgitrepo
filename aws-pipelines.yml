@@ -72,6 +72,12 @@ stages:
       name: Azure Pipelines
       vmImage: 'vs2017-win2016'
     steps:
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: deloitte-key-vault2'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault' 
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform apply'
       inputs:
