@@ -10,9 +10,6 @@ stages:
 - stage: BUILD
   jobs:
   - job: Build
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'
     steps:
     - task: CopyFiles@2
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -72,9 +69,6 @@ stages:
   dependsOn: BUILD
   jobs:
   - job: Apply
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'
     steps:
     - task: AzureKeyVault@1
       displayName: 'Azure Key Vault: deloitte-key-vault2'
@@ -109,9 +103,6 @@ stages:
   dependsOn: APPLY
   jobs:
   - job: Test
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'
     variables:
       AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.myOutputVar1'] ]
       AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secret.myOutputVar2'] ]
@@ -162,9 +153,7 @@ stages:
   dependsOn: TEST
   jobs:
   - job: Destroy
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'   
+ 
     steps:
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform destroy'
