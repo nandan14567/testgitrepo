@@ -75,7 +75,7 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault'
-      enabled: false 
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform 0.12.20'
       inputs:
