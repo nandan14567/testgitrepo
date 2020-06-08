@@ -105,7 +105,9 @@ stages:
 
 
 - stage: TEST
-  dependsOn: APPLY
+  dependsOn:        
+  - APPLY
+  - BUILD
   jobs:
   - job: Test
     variables:
