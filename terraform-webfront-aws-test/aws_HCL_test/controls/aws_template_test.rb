@@ -72,8 +72,6 @@ awsInstanceModules.each{|n|
           title "test for application load balancer subnets"             
           desc "An optional description..."
           describe aws_alb(n['attributes']['arn']) do
-            its('subnets') { should include n['attributes']['ids'][0] }
-            its('subnets') { should include n['attributes']['ids'][1] }
             its('subnets.count') {should be > 1}
           end
         end
