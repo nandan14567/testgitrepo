@@ -24,29 +24,7 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
-
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true]$(access-key)"
-      name: set_accesskey
-    - script: echo $(set_accesskey.myOutputVar1)
-      name: echo_accesskey
-
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true]$(secret-key)"
-      name: set_secreat
-    - script: echo $(set_secreat.myOutputVar2)
-      name: echo_secreat
-
-- stage: TEST
-  dependsOn: BUILD
-  jobs:
-  - job: Test
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'
-    variables:
-      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.myOutputVar1'] ]
-      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secreat.myOutputVar2'] ]
-      AWS_DEFAULT_REGION: "us-east-1" 
-    steps:
+        
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform 0.12.20'
       inputs:
@@ -70,18 +48,6 @@ stages:
       inputs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
-    - script: echo $(AWS_ACCESS_KEY_ID)
-      name: echo_accesskey
-    - script: echo $(AWS_SECRET_ACCESS_KEY)
-      name: echo_secret
-    - script: echo $(AWS_DEFAULT_REGION)
-      name: echo_region
-
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
-      inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault'
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform plan'
@@ -91,7 +57,45 @@ stages:
         environmentServiceName: 'Recipe_Azure_Service_Conn'
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-        
+
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true]$(access-key)"
+      name: set_accesskey      
+    - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true]$(secret-key)"
+      name: set_secret
+
+
+- stage: APPLY
+  dependsOn: BUILD
+  jobs:
+  - job: Apply
+    pool:
+      name: Azure Pipelines
+      vmImage: 'vs2017-win2016'
+    steps:
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform apply'
+      inputs:
+        command: apply
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
+      enabled: false
+
+
+- stage: TEST
+  dependsOn: BUILD
+  jobs:
+  - job: Test
+    pool:
+      name: Azure Pipelines
+      vmImage: 'vs2017-win2016'
+    variables:
+      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.myOutputVar1'] ]
+      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secret.myOutputVar2'] ]
+      AWS_DEFAULT_REGION: "us-east-1" 
+
+    steps:      
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
 
@@ -122,7 +126,6 @@ stages:
 
     - powershell: |
        type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
-       echo "end"
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
       displayName: 'PowerShell Script'
 
@@ -132,25 +135,9 @@ stages:
         inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
         inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
 
-- stage: APPLY
-  jobs:
-  - job: Apply
-    pool:
-      name: Azure Pipelines
-      vmImage: 'vs2017-win2016'
-    steps:
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform apply'
-      inputs:
-        command: apply
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-        environmentServiceName: 'Recipe_Azure_Service_Conn'
-        secureVarsFile: 'awslb_yamltest.tfvars.json'
-        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-      enabled: false
 
 - stage: DESTROY
-  dependsOn: APPLY
+  dependsOn: TEST
   jobs:
   - job: Destroy
     pool:
