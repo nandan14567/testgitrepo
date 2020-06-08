@@ -43,8 +43,8 @@ stages:
       name: Azure Pipelines
       vmImage: 'vs2017-win2016'
     variables:
-      AWS_ACCESS_KEY_ID: $[ dependencies.BUILD.outputs['set_accesskey.myOutputVar1'] ]
-      AWS_SECRET_ACCESS_KEY: $[ dependencies.BUILD.outputs['set_secreat.myOutputVar2'] ]
+      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.myOutputVar1'] ]
+      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secreat.myOutputVar2'] ]
       AWS_DEFAULT_REGION: "us-east-1" 
     steps:
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
