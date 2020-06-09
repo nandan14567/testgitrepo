@@ -8,7 +8,7 @@ pool:
 
 variables:
   workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-  awsRegion: "us-east-1"
+  awsRegion: 'us-east-1'
   terraformVer: 0.12.20
   keyVault: 'deloitte-key-vault'
   azureServiceConn: 'Recipe_Azure_Service_Conn'
