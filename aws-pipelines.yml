@@ -95,6 +95,8 @@ stages:
         mergeTestResults: true
 
     - task: PublishTestResults@2
+      displayName: Publish inspec test results2
+      condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
         testResultsFiles: '**/*.xml'
