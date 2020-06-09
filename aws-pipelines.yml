@@ -7,10 +7,15 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
   terraformVer: 0.12.20
   keyVault: 'deloitte-key-vault'
   azureServiceConn: 'Recipe_Azure_Service_Conn'
-  platform: x64
+  backendResourceGroup: 'AZRG-USE-ITS-RCPNPD-NPD-001'
+  backendStorageAccount: samstorageacc
+  backendContainer: 'aws-load-balancer-with-provisioner'
+  backendBlob: 'AWSILB-Recipe.tfstate'
+
   
 stages:
 - stage: BUILD
@@ -33,25 +38,25 @@ stages:
       inputs:
         command: init
         terraformVersion: $(terraformVer)
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         backendType: azurerm
         backendServiceArm: $(azureServiceConn)
-        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-        backendAzureRmStorageAccountName: samstorageacc
-        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
-        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
+        backendAzureRmResourceGroupName: $(backendResourceGroup)
+        backendAzureRmStorageAccountName: $(backendStorageAccount)
+        backendAzureRmContainerName: $(backendContainer)
+        backendAzureRmKey: $(backendBlob)
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform validate'
       inputs:
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
 
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform plan'
       inputs:
         command: plan
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
@@ -83,18 +88,18 @@ stages:
       inputs:
         command: init
         terraformVersion: $(terraformVer)
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         backendType: azurerm
         backendServiceArm: $(azureServiceConn)
-        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-        backendAzureRmStorageAccountName: samstorageacc
-        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
-        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
+        backendAzureRmResourceGroupName: $(backendResourceGroup)
+        backendAzureRmStorageAccountName: $(backendStorageAccount)
+        backendAzureRmContainerName: $(backendContainer)
+        backendAzureRmKey: $(backendBlob)
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform apply'
       inputs:
         command: apply
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
@@ -132,24 +137,24 @@ stages:
           $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
           $BlobName = "AWSILB-Recipe.tfstate"
-          $localTargetDirectory = "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files"
+          $localTargetDirectory = "$(workingDir)/test/aws_HCL_test/files"
           mkdir $localTargetDirectory
           $ContainerName  = "aws-load-balancer-with-provisioner"
           
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
                   -Destination $localTargetDirectory -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
 
     - powershell: |
-       type "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+       type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
+      workingDirectory: $(workingDir)
       displayName: 'Print State file'
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
       inputs:
-        inspecProfilePath: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        inspecProfilePath: '$(workingDir)/test'
         inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
 
 
@@ -173,18 +178,18 @@ stages:
       inputs:
         command: init
         terraformVersion: $(terraformVer)
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         backendType: azurerm
         backendServiceArm: $(azureServiceConn)
-        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-        backendAzureRmStorageAccountName: samstorageacc
-        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
-        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
+        backendAzureRmResourceGroupName: $(backendResourceGroup)
+        backendAzureRmStorageAccountName: $(backendStorageAccount)
+        backendAzureRmContainerName: $(backendContainer)
+        backendAzureRmKey: $(backendBlob)
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform destroy'
       inputs:
         command: destroy
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
