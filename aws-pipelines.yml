@@ -91,7 +91,7 @@ stages:
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
-        testResultsFiles: '**/junit.xml'
+        testResultsFiles: 'test/junit.xml'
         mergeTestResults: true
 
     - task: PublishTestResults@2
@@ -99,7 +99,45 @@ stages:
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
-        testResultsFiles: '**/*.xml'
+        testResultsFiles: 'test/aws_HCL_test/junit.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        mergeTestResults: true
+        testRunTitle: 'avtask'
+
+    - task: PublishTestResults@2
+      displayName: Publish inspec test results3
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'test/junit.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        mergeTestResults: true
+        testRunTitle: 'avtask'
+    - task: PublishTestResults@2
+      displayName: Publish inspec test results2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'junit.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        mergeTestResults: true
+        testRunTitle: 'avtask'
+
+    - task: PublishTestResults@2
+      displayName: Publish inspec test results2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'aws_HCL_test/junit.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        mergeTestResults: true
+        testRunTitle: 'avtask'
+    - task: PublishTestResults@2
+      displayName: Publish inspec test results4
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'test/aws_HCL_test/*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
         mergeTestResults: true
         testRunTitle: 'avtask'
