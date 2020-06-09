@@ -8,9 +8,11 @@ pool:
 
 variables:
   workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+  awsRegion: "us-east-1"
   terraformVer: 0.12.20
   keyVault: 'deloitte-key-vault'
   azureServiceConn: 'Recipe_Azure_Service_Conn'
+  secureVarFile: 'awslb_yamltest.tfvars.json'
   backendResourceGroup: 'AZRG-USE-ITS-RCPNPD-NPD-001'
   backendStorageAccount: samstorageacc
   backendContainer: 'aws-load-balancer-with-provisioner'
@@ -51,19 +53,18 @@ stages:
       inputs:
         workingDirectory: $(workingDir)
 
-
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform plan'
       inputs:
         command: plan
         workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
-        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        secureVarsFile: $(secureVarFile)
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
 
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar1;isOutput=true]$(access-key)"
+    - powershell: echo "##vso[task.setvariable variable=accessKey;isOutput=true]$(access-key)"
       name: set_accesskey      
-    - powershell: echo "##vso[task.setvariable variable=myOutputVar2;isOutput=true]$(secret-key)"
+    - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
       name: set_secret
 
 
@@ -95,16 +96,16 @@ stages:
         backendAzureRmStorageAccountName: $(backendStorageAccount)
         backendAzureRmContainerName: $(backendContainer)
         backendAzureRmKey: $(backendBlob)
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform apply'
       inputs:
         command: apply
         workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
-        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        secureVarsFile: $(secureVarFile)
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
     
-
 
 - stage: TEST
   dependsOn:        
@@ -113,9 +114,9 @@ stages:
   jobs:
   - job: Test
     variables:
-      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.myOutputVar1'] ]
-      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secret.myOutputVar2'] ]
-      AWS_DEFAULT_REGION: "us-east-1" 
+      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.accessKey'] ]
+      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secret.secretKey'] ]
+      AWS_DEFAULT_REGION: $(awsRegion) 
 
     steps:      
     - task: UseRubyVersion@0
@@ -133,13 +134,13 @@ stages:
         azureSubscription: $(azureServiceConn)
         ScriptType: InlineScript
         Inline: |
-          $StorageAccountName = "samstorageacc"
+          $StorageAccountName = $(backendStorageAccount)
           $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
-          $BlobName = "AWSILB-Recipe.tfstate"
+          $BlobName = $(backendBlob)
           $localTargetDirectory = "$(workingDir)/test/aws_HCL_test/files"
           mkdir $localTargetDirectory
-          $ContainerName  = "aws-load-balancer-with-provisioner"
+          $ContainerName  = $(backendContainer)
           
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
                   -Destination $localTargetDirectory -Context $ctx
@@ -161,18 +162,19 @@ stages:
 - stage: DESTROY
   dependsOn: TEST
   jobs:
-  - job: Destroy
- 
+  - job: Destroy 
     steps:
     - task: AzureKeyVault@1
       displayName: 'Azure Key Vault'
       inputs:
         azureSubscription: $(azureServiceConn)
         KeyVaultName: $(keyVault)
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform $(terraformVer)'
       inputs:
         terraformVersion: $(terraformVer)
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform init'
       inputs:
@@ -185,12 +187,13 @@ stages:
         backendAzureRmStorageAccountName: $(backendStorageAccount)
         backendAzureRmContainerName: $(backendContainer)
         backendAzureRmKey: $(backendBlob)
+
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform destroy'
       inputs:
         command: destroy
         workingDirectory: $(workingDir)
         environmentServiceName: $(azureServiceConn)
-        secureVarsFile: 'awslb_yamltest.tfvars.json'
+        secureVarsFile: $(secureVarFile)
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
       enabled: false
