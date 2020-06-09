@@ -99,48 +99,19 @@ stages:
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
-        testResultsFiles: 'test/aws_HCL_test/junit.xml'
+        testResultsFiles: '**/*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
         mergeTestResults: true
         testRunTitle: 'avtask'
 
     - task: PublishTestResults@2
-      displayName: Publish inspec test results3
-      condition: succeededOrFailed()
+      displayName: 'Publish test results for terraform'
       inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: 'test/junit.xml'
+        testResultsFiles: '**/test-*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-        mergeTestResults: true
-        testRunTitle: 'avtask'
-    - task: PublishTestResults@2
-      displayName: Publish inspec test results2
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: 'junit.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-        mergeTestResults: true
-        testRunTitle: 'avtask'
+      condition: succeededOrFailed()  
 
-    - task: PublishTestResults@2
-      displayName: Publish inspec test results2
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: 'aws_HCL_test/junit.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-        mergeTestResults: true
-        testRunTitle: 'avtask'
-    - task: PublishTestResults@2
-      displayName: Publish inspec test results4
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: 'test/aws_HCL_test/*.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-        mergeTestResults: true
-        testRunTitle: 'avtask'
+
 
     
 
