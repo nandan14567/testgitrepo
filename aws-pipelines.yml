@@ -5,6 +5,10 @@ trigger:
 pool:
   name: Azure Pipelines
   vmImage: 'vs2017-win2016'
+
+variables:
+  terraformVer: 0.12.20
+  platform: x64
   
 stages:
 - stage: BUILD
@@ -27,15 +31,15 @@ stages:
         KeyVaultName: 'deloitte-key-vault' 
         
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
-      displayName: 'Use Terraform 0.12.20'
+      displayName: 'Use Terraform $(terraformVer)'
       inputs:
-        terraformVersion: 0.12.20
+        terraformVersion: $(terraformVer)
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform init'
       inputs:
         command: init
-        terraformVersion: 0.12.20
+        terraformVersion: $(terraformVer)
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
         backendType: azurerm
         backendServiceArm: 'Recipe_Azure_Service_Conn'
@@ -77,15 +81,15 @@ stages:
         KeyVaultName: 'deloitte-key-vault'
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
-      displayName: 'Use Terraform 0.12.20'
+      displayName: 'Use Terraform $(terraformVer)'
       inputs:
-        terraformVersion: 0.12.20
+        terraformVersion: $(terraformVer)
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform init'
       inputs:
         command: init
-        terraformVersion: 0.12.20
+        terraformVersion: $(terraformVer)
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
         backendType: azurerm
         backendServiceArm: 'Recipe_Azure_Service_Conn'
