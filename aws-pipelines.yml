@@ -84,14 +84,14 @@ stages:
       displayName: 'Execute InSpec'
       inputs:
         inspecProfilePath: '$(workingDir)/test'
-        inspecArguments: 'aws_HCL_test --reporter junit:junit.xml html:www/index.html -t aws:// --chef-license accept'
+        inspecArguments: 'aws_HCL_test --reporter junit:junit/test-results.xml html:www/index.html -t aws:// --chef-license accept'
        
     - task: PublishTestResults@2
       displayName: Publish inspec test results
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
-        testResultsFiles: 'test/junit.xml'
+        testResultsFiles: '**/test-results.xml'
         mergeTestResults: true
 
     - task: PublishTestResults@2
@@ -110,6 +110,13 @@ stages:
         testResultsFiles: '**/test-*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()  
+
+    - task: PublishTestResults@2
+      displayName: 'Publish test results for terraform'
+      inputs:
+        testResultsFiles: '**/test-*.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      condition: succeededOrFailed()
 
 
 
