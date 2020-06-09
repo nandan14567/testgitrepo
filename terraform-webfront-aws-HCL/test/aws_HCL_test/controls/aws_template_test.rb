@@ -63,7 +63,7 @@ awsInstanceModules.each{|n|
           title "test for application load balancer security groups"             
           desc "An optional description..."
           describe aws_alb(load_balancer_arn: n['attributes']['arn']) do
-            its ('security_groups') {should include n['attributes']['security_groups']}
+            its ('type') { should eq n['attributes']['load_balancer_type'] }
           end
         end
     
