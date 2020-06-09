@@ -14,9 +14,9 @@ variables:
   azureServiceConn: 'Recipe_Azure_Service_Conn'
   secureVarFile: 'awslb_yamltest.tfvars.json'
   backendResourceGroup: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-  backendStorageAccount: 'samstorageacc'
-  backendContainer: 'aws-load-balancer-with-provisioner'
-  backendBlob: 'AWSILB-Recipe.tfstate'
+  backendStorageAccount: "samstorageacc"
+  backendContainer: "aws-load-balancer-with-provisioner"
+  backendBlob: "AWSILB-Recipe.tfstate"
 
   
 stages:
