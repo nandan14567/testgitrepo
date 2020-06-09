@@ -94,4 +94,16 @@ stages:
         testResultsFiles: '**/junit.xml'
         mergeTestResults: true
 
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/*.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        mergeTestResults: true
+        testRunTitle: 'avtask'
+
+    
+
+    
+
 
