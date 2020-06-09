@@ -8,6 +8,8 @@ pool:
 
 variables:
   terraformVer: 0.12.20
+  keyVault: 'deloitte-key-vault'
+  azureServiceConn: 'Recipe_Azure_Service_Conn'
   platform: x64
   
 stages:
@@ -15,20 +17,11 @@ stages:
   jobs:
   - job: Build
     steps:
-    - task: CopyFiles@2
-      displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
-      inputs:
-        SourceFolder: 'terraform-webfront-aws-HCL'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: drop'
-
     - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
+      displayName: 'Azure Key Vault'
       inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault' 
+        azureSubscription: $(azureServiceConn)
+        KeyVaultName: $(keyVault) 
         
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform $(terraformVer)'
@@ -42,7 +35,7 @@ stages:
         terraformVersion: $(terraformVer)
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
         backendType: azurerm
-        backendServiceArm: 'Recipe_Azure_Service_Conn'
+        backendServiceArm: $(azureServiceConn)
         backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
         backendAzureRmStorageAccountName: samstorageacc
         backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
@@ -59,7 +52,7 @@ stages:
       inputs:
         command: plan
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
 
@@ -75,10 +68,10 @@ stages:
   - job: Apply
     steps:
     - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault2'
+      displayName: 'Azure Key Vault'
       inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault'
+        azureSubscription: $(azureServiceConn)
+        KeyVaultName: $(keyVault)
 
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform $(terraformVer)'
@@ -92,7 +85,7 @@ stages:
         terraformVersion: $(terraformVer)
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
         backendType: azurerm
-        backendServiceArm: 'Recipe_Azure_Service_Conn'
+        backendServiceArm: $(azureServiceConn)
         backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
         backendAzureRmStorageAccountName: samstorageacc
         backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
@@ -102,7 +95,7 @@ stages:
       inputs:
         command: apply
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
     
@@ -132,7 +125,7 @@ stages:
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
       inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
+        azureSubscription: $(azureServiceConn)
         ScriptType: InlineScript
         Inline: |
           $StorageAccountName = "samstorageacc"
@@ -166,12 +159,33 @@ stages:
   - job: Destroy
  
     steps:
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault'
+      inputs:
+        azureSubscription: $(azureServiceConn)
+        KeyVaultName: $(keyVault)
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+      displayName: 'Use Terraform $(terraformVer)'
+      inputs:
+        terraformVersion: $(terraformVer)
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+      displayName: 'terraform init'
+      inputs:
+        command: init
+        terraformVersion: $(terraformVer)
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        backendType: azurerm
+        backendServiceArm: $(azureServiceConn)
+        backendAzureRmResourceGroupName: 'AZRG-USE-ITS-RCPNPD-NPD-001'
+        backendAzureRmStorageAccountName: samstorageacc
+        backendAzureRmContainerName: 'aws-load-balancer-with-provisioner'
+        backendAzureRmKey: 'AWSILB-Recipe.tfstate'
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
       displayName: 'terraform destroy'
       inputs:
         command: destroy
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-        environmentServiceName: 'Recipe_Azure_Service_Conn'
+        environmentServiceName: $(azureServiceConn)
         secureVarsFile: 'awslb_yamltest.tfvars.json'
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
       enabled: false
