@@ -8,15 +8,15 @@ pool:
 
 variables:
   workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-  awsRegion: "us-east-1"
+  awsRegion: 'us-east-1'
   terraformVer: 0.12.20
   keyVault: 'deloitte-key-vault'
   azureServiceConn: 'Recipe_Azure_Service_Conn'
   secureVarFile: 'awslb_yamltest.tfvars.json'
   backendResourceGroup: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-  backendStorageAccount: "samstorageacc"
-  backendContainer: "aws-load-balancer-with-provisioner"
-  backendBlob: "AWSILB-Recipe.tfstate"
+  backendStorageAccount: 'samstorageacc'
+  backendContainer: 'aws-load-balancer-with-provisioner'
+  backendBlob: 'AWSILB-Recipe.tfstate'
 
   
 stages:
@@ -129,23 +129,23 @@ stages:
         downloadsFolderWindows: 'c:\windows\temp	'
 
     - task: AzurePowerShell@4
-      displayName: 'State file from Backend'
+      displayName: 'Azure PowerShell script: InlineScript'
       inputs:
-        azureSubscription: $(azureServiceConn)
+        azureSubscription: 'Recipe_Azure_Service_Conn'
         ScriptType: InlineScript
         Inline: |
-          $StorageAccountName = $(backendStorageAccount)
+          $StorageAccountName = "samstorageacc"
           $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
-          $BlobName = $(backendBlob)
-          $localTargetDirectory = "$(workingDir)/test/aws_HCL_test/files"
+          $BlobName = "AWSILB-Recipe.tfstate"
+          $localTargetDirectory = "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files"
           mkdir $localTargetDirectory
-          $ContainerName  = $(backendContainer)
+          $ContainerName  = "aws-load-balancer-with-provisioner"
           
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
                   -Destination $localTargetDirectory -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: $(workingDir)
+        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
     - powershell: |
        type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
