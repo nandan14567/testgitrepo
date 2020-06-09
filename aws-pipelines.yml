@@ -196,4 +196,4 @@ stages:
         environmentServiceName: $(azureServiceConn)
         secureVarsFile: $(secureVarFile)
         commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-      enabled: false
+      
