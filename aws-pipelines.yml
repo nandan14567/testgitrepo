@@ -8,7 +8,7 @@ pool:
 
 variables:
   workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-  awsRegion: 'us-east-1'
+  awsRegion: "us-east-1"
   terraformVer: 0.12.20
   keyVault: 'deloitte-key-vault'
   azureServiceConn: 'Recipe_Azure_Service_Conn'
@@ -129,23 +129,23 @@ stages:
         downloadsFolderWindows: 'c:\windows\temp	'
 
     - task: AzurePowerShell@4
-      displayName: 'Azure PowerShell script: InlineScript'
+      displayName: 'State file from Backend'
       inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
+        azureSubscription: $(azureServiceConn)
         ScriptType: InlineScript
         Inline: |
-          $StorageAccountName = "samstorageacc"
+          $StorageAccountName = "$(backendStorageAccount)"
           $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
-          $BlobName = "AWSILB-Recipe.tfstate"
-          $localTargetDirectory = "$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test/aws_HCL_test/files"
+          $BlobName = "$(backendBlob)"
+          $localTargetDirectory = "$(workingDir)/test/aws_HCL_test/files"
           mkdir $localTargetDirectory
-          $ContainerName  = "aws-load-balancer-with-provisioner"
+          $ContainerName  = "$(backendContainer)"
           
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
                   -Destination $localTargetDirectory -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+        workingDirectory: $(workingDir)
 
     - powershell: |
        type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
