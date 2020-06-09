@@ -30,46 +30,7 @@ stages:
         azureSubscription: $(azureServiceConn)
         KeyVaultName: $(keyVault) 
         
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
-      displayName: 'Use Terraform $(terraformVer)'
-      inputs:
-        terraformVersion: $(terraformVer)
 
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform init'
-      inputs:
-        command: init
-        terraformVersion: $(terraformVer)
-        workingDirectory: $(workingDir)
-        backendType: azurerm
-        backendServiceArm: $(azureServiceConn)
-        backendAzureRmResourceGroupName: $(backendResourceGroup)
-        backendAzureRmStorageAccountName: $(backendStorageAccount)
-        backendAzureRmContainerName: $(backendContainer)
-        backendAzureRmKey: $(backendBlob)
-
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform validate'
-      inputs:
-        workingDirectory: $(workingDir)
-
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform plan'
-      inputs:
-        command: plan
-        workingDirectory: $(workingDir)
-        environmentServiceName: $(azureServiceConn)
-        secureVarsFile: $(secureVarFile)
-        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform apply'
-      inputs:
-        command: apply
-        workingDirectory: $(workingDir)
-        environmentServiceName: $(azureServiceConn)
-        secureVarsFile: $(secureVarFile)
-        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-    
     - powershell: echo "##vso[task.setvariable variable=accessKey;isOutput=true]$(access-key)"
       name: set_accesskey      
     - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
@@ -124,5 +85,12 @@ stages:
       inputs:
         inspecProfilePath: '$(workingDir)/test'
         inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
+
+    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
+      displayName: 'Execute InSpec2'
+      inputs:
+        inspecProfilePath: '$(workingDir)/test'
+        inspecArguments: 'aws_HCL_test --reporter junit:/tmp/junit.xml html:www/index.html -t aws:// --chef-license accept'
+       
 
 
