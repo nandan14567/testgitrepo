@@ -79,11 +79,15 @@ stages:
        type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
       workingDirectory: $(workingDir)
       displayName: 'Print State file'
-
-    - powershell: |
-       inspec check aws_HCL_test
-      workingDirectory: $(workingDir)/test
-      displayName: 'Linter powershell'
+    - task: AzurePowerShell@4
+      displayName: 'azure ps linter'
+      inputs:
+        azureSubscription: $(azureServiceConn)
+        ScriptType: InlineScript
+        Inline: |
+          inspec check aws_HCL_test
+        preferredAzurePowerShellVersion: 3.1.0
+        workingDirectory: $(workingDir)
      
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
