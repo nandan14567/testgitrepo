@@ -51,18 +51,13 @@ stages:
       displayName: 'Use Ruby >= 2.4'
 
 
-
-    - task: vsts-chef-task-install-inspec@1
-      displayName: 'Install InSpec2'
-      inputs:
-        inspecForceInstall: true
-        inspecChannel: 'stable'
-
     - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
         chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
-        downloadsFolderWindows: 'c:\windows\temp	'
+        downloadsFolderWindows: 'c:\windows\temp'
+        inspecForceInstall: true
+      addToPath: true
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
