@@ -50,6 +50,14 @@ stages:
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
 
+
+
+    - task: vsts-chef-task-install-inspec@1
+    displayName: 'Install InSpec2'
+      inputs:
+        inspecForceInstall: true
+        inspecChannel: 'stable'
+
     - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
@@ -134,6 +142,7 @@ stages:
         testResultsFiles: 'aws_HCL_test/junit/test-*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
+
 
 
 
