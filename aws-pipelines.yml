@@ -84,7 +84,7 @@ stages:
       displayName: 'InSpec Linter'
       inputs:
         inspecProfilePath: '$(workingDir)/test'
-        inspecArguments: 'check aws_HCL_test'
+        inspecArguments: 'check aws_HCL_test --chef-license accept'
       
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
