@@ -81,6 +81,13 @@ stages:
       displayName: 'Print State file'
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
+      displayName: 'InSpec Linter'
+      inputs:
+        inspecProfilePath: '$(workingDir)/test'
+        inspecArguments: 'check aws_HCL_test'
+      
+
+    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
       inputs:
         inspecProfilePath: '$(workingDir)/test'
