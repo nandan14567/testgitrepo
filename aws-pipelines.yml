@@ -80,12 +80,11 @@ stages:
       workingDirectory: $(workingDir)
       displayName: 'Print State file'
 
-    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
-      displayName: 'InSpec Linter'
-      inputs:
-        inspecProfilePath: '$(workingDir)/test'
-        inspecArguments: 'check aws_HCL_test --chef-license accept'
-      
+    - powershell: |
+       inspec check aws_HCL_test
+      workingDirectory: $(workingDir)/test
+      displayName: 'Linter powershell'
+     
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
