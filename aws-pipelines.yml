@@ -29,36 +29,7 @@ stages:
       inputs:
         azureSubscription: $(azureServiceConn)
         KeyVaultName: $(keyVault) 
-
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
-      displayName: 'Use Terraform $(terraformVer)'
-      inputs:
-        terraformVersion: $(terraformVer)
-
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform init'
-      inputs:
-        command: init
-        terraformVersion: $(terraformVer)
-        workingDirectory: $(workingDir)
-        backendType: azurerm
-        backendServiceArm: $(azureServiceConn)
-        backendAzureRmResourceGroupName: $(backendResourceGroup)
-        backendAzureRmStorageAccountName: $(backendStorageAccount)
-        backendAzureRmContainerName: $(backendContainer)
-        backendAzureRmKey: $(backendBlob)
-
-    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
-      displayName: 'terraform apply'
-      inputs:
-        command: apply
-        workingDirectory: $(workingDir)
-        environmentServiceName: $(azureServiceConn)
-        secureVarsFile: $(secureVarFile)
-        commandOptions: '-var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)'
-    
-        
-
+      
     - powershell: echo "##vso[task.setvariable variable=accessKey;isOutput=true]$(access-key)"
       name: set_accesskey      
     - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
