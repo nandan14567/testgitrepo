@@ -49,6 +49,8 @@ stages:
     steps:      
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
+      inputs:
+        addToPath: true
 
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
@@ -57,7 +59,7 @@ stages:
         chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
         downloadsFolderWindows: 'c:\windows\temp'
         inspecForceInstall: true
-      addToPath: true
+        addToPath: true
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
