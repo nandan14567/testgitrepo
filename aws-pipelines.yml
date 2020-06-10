@@ -53,7 +53,7 @@ stages:
 
 
     - task: vsts-chef-task-install-inspec@1
-    displayName: 'Install InSpec2'
+      displayName: 'Install InSpec2'
       inputs:
         inspecForceInstall: true
         inspecChannel: 'stable'
