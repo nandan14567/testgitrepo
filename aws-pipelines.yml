@@ -79,15 +79,6 @@ stages:
        type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
       workingDirectory: $(workingDir)
       displayName: 'Print State file'
-    - task: AzurePowerShell@4
-      displayName: 'azure ps linter'
-      inputs:
-        azureSubscription: $(azureServiceConn)
-        ScriptType: InlineScript
-        Inline: |
-          c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
-        preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: $(workingDir)/test
      
     - powershell: |
        c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
@@ -107,13 +98,6 @@ stages:
         testResultsFiles: 'aws_HCL_test/**/test-*.xml'
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
-    - task: PublishTestResults@2
-      displayName: Publish inspec test results
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/test-results.xml'
-        mergeTestResults: true
 
     - task: PublishTestResults@2
       displayName: Publish inspec test results2
@@ -124,26 +108,3 @@ stages:
         searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
         mergeTestResults: true
         testRunTitle: 'avtask'
-
-    - task: PublishTestResults@2
-      displayName: 'Publish test results for terraform'
-      inputs:
-        testResultsFiles: '**/test-*.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-      condition: succeededOrFailed()  
-
-    - task: PublishTestResults@2
-      displayName: 'Publish test results for terraform'
-      inputs:
-        testResultsFiles: 'aws_HCL_test/junit/test-*.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-      condition: succeededOrFailed()
-
-
-
-
-    
-
-    
-
-
