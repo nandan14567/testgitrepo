@@ -49,17 +49,11 @@ stages:
     steps:      
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
-      inputs:
-        addToPath: true
-
-
     - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
         chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
         downloadsFolderWindows: 'c:\windows\temp'
-        inspecForceInstall: true
-        addToPath: true
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
@@ -80,6 +74,7 @@ stages:
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: $(workingDir)
 
+
     - powershell: |
        type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
       workingDirectory: $(workingDir)
@@ -90,10 +85,14 @@ stages:
         azureSubscription: $(azureServiceConn)
         ScriptType: InlineScript
         Inline: |
-          inspec check aws_HCL_test
+          c:\opscode\inspec\bin\inspec.bat check aws_HCL_test
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: $(workingDir)
      
+    - powershell: |
+       c:\opscode\inspec\bin\inspec.bat check aws_HCL_test
+      workingDirectory: $(workingDir)/test
+      displayName: 'Ps linter'
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
