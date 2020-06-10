@@ -87,7 +87,7 @@ stages:
         Inline: |
           c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
         preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: $(workingDir)
+        workingDirectory: $(workingDir)/test
      
     - powershell: |
        c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
