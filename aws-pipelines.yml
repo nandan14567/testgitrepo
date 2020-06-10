@@ -85,12 +85,12 @@ stages:
         azureSubscription: $(azureServiceConn)
         ScriptType: InlineScript
         Inline: |
-          c:\opscode\inspec\bin\inspec.bat check aws_HCL_test
+          c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: $(workingDir)
      
     - powershell: |
-       c:\opscode\inspec\bin\inspec.bat check aws_HCL_test
+       c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
       workingDirectory: $(workingDir)/test
       displayName: 'Ps linter'
 
