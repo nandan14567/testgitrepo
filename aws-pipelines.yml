@@ -12,7 +12,7 @@ stages:
   - job: Build
     steps:
     - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
+      displayName: 'Azure Key Vault'
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
@@ -104,12 +104,19 @@ stages:
       name: terraformSecureFile
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
-
     - script: |
+        sudo chmod +x -R .terraform/plugins/linux_amd64 terraform-provider-restapi
         terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
       displayName: terraform destroy 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
+
+    - script: |
+        sudo chmod +x -R .terraform/plugins/linux_amd64 terraform-provider-restapi
+        terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
+      displayName: terraform destroy2
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      enabled: false
 
 
 
