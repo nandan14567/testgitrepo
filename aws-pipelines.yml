@@ -86,7 +86,7 @@ stages:
 
 
   - job: Destroy
-    dependsOn: Test
+    
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
