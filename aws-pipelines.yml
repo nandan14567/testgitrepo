@@ -49,6 +49,11 @@ stages:
       displayName: 'InSpec Linter'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
+    - script: |
+        inspec exec aws_HCL_test -t aws:// --chef-license accept
+      displayName: 'Execute InSpec'
+      workingDirectory: 'terraform-webfront-aws-HCL/test'
+
   - job: Package
     steps:
     - task: UseRubyVersion@0
