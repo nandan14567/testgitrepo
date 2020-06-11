@@ -16,7 +16,9 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
-
+    - task: DownloadSecureFile@1
+      inputs:
+        secureFile: 'awslb_yamltest.tfvars.json'
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
       displayName: 'Use Terraform 0.12.20'
       inputs:
@@ -25,4 +27,9 @@ stages:
     - script: |
         terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(subscription-id) -backend-config=tenant_id=$(tenant-id) -backend-config=client_id=$(client-id) -backend-config=client_secret=$(client-secret)
       displayName: terraform init 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+    - script: |
+        terraform plan -var-file='awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
+      displayName: terraform plan 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
