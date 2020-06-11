@@ -54,7 +54,11 @@ stages:
       AWS_DEFAULT_REGION: 'us-east-1'
     steps:
 
-
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault: deloitte-key-vault'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault'
     - script: |
         terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
       displayName: terraform plan 
