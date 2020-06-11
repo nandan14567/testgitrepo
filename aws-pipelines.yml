@@ -76,7 +76,7 @@ stages:
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
     - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(subscription-id) -backend-config=tenant_id=$(tenant-id) -backend-config=client_id=$(client-id) -backend-config=client_secret=$(client-secret) 
+        sudo chmod +x -R $(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL 
         terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
       displayName: terraform plan 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
