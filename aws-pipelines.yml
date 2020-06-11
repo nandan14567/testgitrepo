@@ -63,7 +63,10 @@ stages:
       inputs:
         versionSpec: '>= 2.4'
 
-    - script: gem install inspec
-      displayName: 'Install inspec'
+    - task: vsts-chef-task-install-inspec@1
+      inputs:
+        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
+        downloadsFolderLinux: '/home/temp'
+
 
     
