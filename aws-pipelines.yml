@@ -24,5 +24,5 @@ stages:
 
     - script: |
         terraform init 
-      displayName: terraform init
+      displayName: terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
