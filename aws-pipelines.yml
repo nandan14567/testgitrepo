@@ -59,16 +59,13 @@ stages:
       AWS_SECRET_ACCESS_KEY: $[ dependencies.Build.outputs['set_secretkey.secretKey'] ]
       AWS_DEFAULT_REGION: 'us-east-1'
     steps:
-    - task: DownloadSecureFile@1
-      name: terraformSecureFile
-      inputs:
-        secureFile: 'awslb_yamltest.tfvars.json'    
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
       inputs:
         buildType: 'current'
         artifactName: 'cmp-build'
         targetPath: '$(Pipeline.Workspace)'
+    
 
     - script: |
         terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
