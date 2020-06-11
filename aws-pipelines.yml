@@ -14,9 +14,23 @@ stages:
       displayName: terraform validate 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
       enabled: false
+    - task: vsts-chef-task-install-inspec@1
+      displayName: 'Install InSpec'
+      inputs:
+        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
+        downloadsFolderLinux: '/home/temp'
+
+    - script: |
+        inspec check aws_HCL_test --chef-license accept
+      displayName: 'InSpec Linter'
+      workingDirectory: 'terraform-webfront-aws-HCL/test'
 
   - job: Package
     steps:
+    - task: UseRubyVersion@0
+      displayName: 'Use Ruby >= 2.4'
+      inputs:
+        versionSpec: '>= 2.4'
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
