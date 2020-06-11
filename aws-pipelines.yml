@@ -17,6 +17,7 @@ stages:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
     - task: DownloadSecureFile@1
+      displayName: 'Download secure file'
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
     - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
@@ -30,6 +31,6 @@ stages:
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
     - script: |
-        terraform plan -var-file='awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
+        terraform plan -var-file='$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
       displayName: terraform plan 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
