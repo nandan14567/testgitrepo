@@ -1,114 +1,20 @@
 ---
 trigger:
 - features/*
-
 pool:
-  name: Azure Pipelines
   vmImage: 'ubuntu-latest'
 
 stages:
 - stage: BUILD
   jobs:
-  - job: Build
+  - job: Test
     steps:
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault'
-      inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault' 
-    - task: DownloadSecureFile@1
-      name: terraformSecureFile
-      inputs:
-        secureFile: 'awslb_yamltest.tfvars.json'
-
-
-    - script: |
-        terraform init
-      displayName: terraform init  -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(subscription-id) -backend-config=tenant_id=$(tenant-id) -backend-config=client_id=$(client-id) -backend-config=client_secret=$(client-secret)
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-
     - script: |
         terraform validate 
       displayName: terraform validate 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-
-    - script: |
-        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
-      displayName: terraform plan 
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-
-    - powershell: echo "##vso[task.setvariable variable=accessKey;isOutput=true]$(access-key)"
-      name: set_accesskey      
-    - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
-      name: set_secretkey
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
         artifact: webfront-build
 
-
-  - job: Test
-    dependsOn: Build
-    condition: eq(1,2)
-    variables:
-      AWS_ACCESS_KEY_ID: $[ dependencies.Build.outputs['set_accesskey.accessKey'] ]
-      AWS_SECRET_ACCESS_KEY: $[ dependencies.Build.outputs['set_secretkey.secretKey'] ]
-      AWS_DEFAULT_REGION: 'us-east-1'
-    steps:
-    - task: DownloadPipelineArtifact@2
-      displayName: Download Artifact from current run
-      inputs:
-        buildType: 'current'
-        artifactName: 'webfront-build'
-        targetPath: '$(Pipeline.Workspace)'
-    
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
-      inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault' 
-
-    - task: DownloadSecureFile@1
-      name: terraformSecureFile
-      inputs:
-        secureFile: 'awslb_yamltest.tfvars.json'
-
-    - script: |
-        sudo chmod +x -R .terraform/plugins/linux_amd64 terraform-provider-restapi
-        terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
-      displayName: terraform plan 
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-
-
-  - job: Destroy
-    dependsOn: Build
-    steps:
-    - task: DownloadPipelineArtifact@2
-      displayName: Download Artifact from current run
-      inputs:
-        buildType: 'current'
-        artifactName: 'webfront-build'
-        targetPath: '$(Pipeline.Workspace)'
-    
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
-      inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault'
-
-    - task: DownloadSecureFile@1
-      name: terraformSecureFile
-      inputs:
-        secureFile: 'awslb_yamltest.tfvars.json'
-
-    - script: |
-        sudo chmod +x -R .terraform/plugins/linux_amd64 terraform-provider-restapi
-        terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
-      displayName: terraform destroy 
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-      enabled: false
-
-
-
-
-    
