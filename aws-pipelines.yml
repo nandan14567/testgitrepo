@@ -39,7 +39,7 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
-        
+
     - task: DownloadSecureFile@1
       name: terraformSecureFile
       inputs:
@@ -51,6 +51,7 @@ stages:
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
     - script: |
+        sudo chmod +x -R terraform-provider-restapi
         terraform validate 
       displayName: terraform validate 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
