@@ -16,6 +16,7 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
+
     - task: DownloadSecureFile@1
       name: terraformSecureFile
       inputs:
@@ -52,27 +53,13 @@ stages:
       AWS_SECRET_ACCESS_KEY: $[ dependencies.Build.outputs['set_secretkey.secretKey'] ]
       AWS_DEFAULT_REGION: 'us-east-1'
     steps:
-    - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault: deloitte-key-vault'
-      inputs:
-        azureSubscription: 'Recipe_Azure_Service_Conn'
-        KeyVaultName: 'deloitte-key-vault'
 
-    - task: UseRubyVersion@0
-      displayName: 'Use Ruby >= 2.4'
-      inputs:
-        versionSpec: '>= 2.4'
-
-    - task: vsts-chef-task-install-inspec@1
-      displayName: 'Install InSpec'
-      inputs:
-        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
-        downloadsFolderLinux: '/home/temp'
 
     - script: |
-        inspec check aws_HCL_test --chef-license accept
-      displayName: 'InSpec Linter'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
+      displayName: terraform plan 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
 
 
 
