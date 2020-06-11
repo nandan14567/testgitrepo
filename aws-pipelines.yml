@@ -16,7 +16,6 @@ stages:
       inputs:
         azureSubscription: 'Recipe_Azure_Service_Conn'
         KeyVaultName: 'deloitte-key-vault' 
-
     - task: DownloadSecureFile@1
       name: terraformSecureFile
       inputs:
@@ -45,7 +44,6 @@ stages:
       name: set_accesskey      
     - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
       name: set_secretkey
-
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
