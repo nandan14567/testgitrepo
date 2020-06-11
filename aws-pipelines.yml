@@ -68,5 +68,12 @@ stages:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
 
+    - script: |
+        check aws_HCL_test --chef-license accept
+      displayName: 'InSpec Linter'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+
+
 
     
