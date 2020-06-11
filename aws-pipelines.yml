@@ -14,8 +14,48 @@ stages:
       displayName: terraform validate 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
       enabled: false
+
+  - job: Package
+    steps:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
         artifact: webfront-build
 
+- stage: DEPLOY
+  dependsOn: BUILD
+  jobs:
+  - job: SBX_DEPLOYMENT   
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Artifact from current run
+      inputs:
+        buildType: 'current'
+        artifactName: 'webfront-build'
+        targetPath: '$(Pipeline.Workspace)'
+
+    - task: AzureKeyVault@1
+      displayName: 'Azure Key Vault'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault' 
+        
+    - task: DownloadSecureFile@1
+      name: terraformSecureFile
+      inputs:
+        secureFile: 'awslb_yamltest.tfvars.json'
+
+    - script: |
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(subscription-id) -backend-config=tenant_id=$(tenant-id) -backend-config=client_id=$(client-id) -backend-config=client_secret=$(client-secret)
+      displayName: terraform init 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+    - script: |
+        terraform validate 
+      displayName: terraform validate 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+
+    - script: |
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
+      displayName: terraform plan 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
