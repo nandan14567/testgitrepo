@@ -76,7 +76,7 @@ stages:
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
     - script: |
-        sudo chmod +x -R .terraform/plugins/linux_amd64
+        sudo chmod +x -R .terraform/plugins/linux_amd64 terraform-provider-restapi
         terraform plan -var-file='$(Agent.TempDirectory)/awslb_yamltest.tfvars.json' -var client_id=$(client-id) -var client_secret=$(client-secret) -var access_key=$(access-key) -var secret_key=$(secret-key)
       displayName: terraform plan 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
