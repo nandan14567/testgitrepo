@@ -23,6 +23,6 @@ stages:
         terraformVersion: 0.12.20
 
     - script: |
-        terraform init
+        terraform init container_name='aws-load-balancer-with-provisioner'
       displayName: terraform init
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
