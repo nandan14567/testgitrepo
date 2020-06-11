@@ -84,8 +84,8 @@ stages:
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
 
 
-  - job: Test
-    dependsOn: Destroy
+  - job: Destroy
+    dependsOn: Test
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
