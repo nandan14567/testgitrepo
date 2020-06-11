@@ -64,6 +64,7 @@ stages:
         versionSpec: '>= 2.4'
 
     - task: vsts-chef-task-install-inspec@1
+      displayName: 'Install InSpec'
       inputs:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
@@ -71,7 +72,7 @@ stages:
     - script: |
         inspec check aws_HCL_test --chef-license accept
       displayName: 'InSpec Linter'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
 
 
 
