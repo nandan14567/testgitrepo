@@ -21,3 +21,8 @@ stages:
       displayName: 'Use Terraform 0.12.20'
       inputs:
         terraformVersion: 0.12.20
+
+    - script: |
+        terraform init
+      displayName: terraform init
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
