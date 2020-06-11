@@ -23,6 +23,6 @@ stages:
         terraformVersion: 0.12.20
 
     - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=arm_subscription_id=$(subscription-id) -backend-config=arm_tenant_id=$(tenant-id) -backend-config=arm_client_id=$(client-id) -backend-config=arm_client_secret=$(secret-key)
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(subscription-id) -backend-config=tenant_id=$(tenant-id) -backend-config=client_id=$(client-id) -backend-config=client_secret=$(client-secret)
       displayName: terraform init 
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
