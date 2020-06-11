@@ -4,106 +4,20 @@ trigger:
 
 pool:
   name: Azure Pipelines
-  vmImage: 'vs2017-win2016'
+  vmImage: 'ubuntu-latest'
 
-variables:
-  workingDir: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
-  awsRegion: 'us-east-1'
-  terraformVer: 0.12.20
-  keyVault: 'deloitte-key-vault'
-  azureServiceConn: 'Recipe_Azure_Service_Conn'
-  secureVarFile: 'awslb_yamltest.tfvars.json'
-  backendResourceGroup: 'AZRG-USE-ITS-RCPNPD-NPD-001'
-  backendStorageAccount: 'samstorageacc'
-  backendContainer: 'aws-load-balancer-with-provisioner'
-  backendBlob: 'AWSILB-Recipe.tfstate'
-
-  
 stages:
 - stage: BUILD
   jobs:
   - job: Build
     steps:
     - task: AzureKeyVault@1
-      displayName: 'Azure Key Vault'
+      displayName: 'Azure Key Vault: deloitte-key-vault'
       inputs:
-        azureSubscription: $(azureServiceConn)
-        KeyVaultName: $(keyVault) 
-      
-    - powershell: echo "##vso[task.setvariable variable=accessKey;isOutput=true]$(access-key)"
-      name: set_accesskey      
-    - powershell: echo "##vso[task.setvariable variable=secretKey;isOutput=true]$(secret-key)"
-      name: set_secret
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        KeyVaultName: 'deloitte-key-vault' 
 
-
-- stage: TEST
-  dependsOn: BUILD       
-  jobs:
-  - job: Test
-    variables:
-      AWS_ACCESS_KEY_ID: $[ stageDependencies.BUILD.Build.outputs['set_accesskey.accessKey'] ]
-      AWS_SECRET_ACCESS_KEY: $[ stageDependencies.BUILD.Build.outputs['set_secret.secretKey'] ]
-      AWS_DEFAULT_REGION: $(awsRegion) 
-
-    steps:      
-    - task: UseRubyVersion@0
-      displayName: 'Use Ruby >= 2.4'
-    - task: chef-software.vsts-chef-tasks.vsts-chef-task-install-inspec.vsts-chef-task-install-inspec@1
-      displayName: 'Install InSpec'
+    - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+      displayName: 'Use Terraform 0.12.20'
       inputs:
-        chefInstallScriptDownloadURLWindows: 'https://omnitruck.chef.io/install.ps1'
-        downloadsFolderWindows: 'c:\windows\temp'
-
-    - task: AzurePowerShell@4
-      displayName: 'State file from Backend'
-      inputs:
-        azureSubscription: $(azureServiceConn)
-        ScriptType: InlineScript
-        Inline: |
-          $StorageAccountName = "$(backendStorageAccount)"
-          $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
-          $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
-          $BlobName = "$(backendBlob)"
-          $localTargetDirectory = "$(workingDir)/test/aws_HCL_test/files"
-          mkdir $localTargetDirectory
-          $ContainerName  = "$(backendContainer)"
-          
-          Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
-                  -Destination $localTargetDirectory -Context $ctx
-        preferredAzurePowerShellVersion: 3.1.0
-        workingDirectory: $(workingDir)
-
-
-    - powershell: |
-       type "$(workingDir)/test/aws_HCL_test/files/AWSILB-Recipe.tfstate"
-      workingDirectory: $(workingDir)
-      displayName: 'Print State file'
-     
-    - powershell: |
-       c:\opscode\inspec\bin\inspec.bat check aws_HCL_test --chef-license accept
-      workingDirectory: $(workingDir)/test
-      displayName: 'Ps linter'
-
-    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
-      displayName: 'Execute InSpec'
-      inputs:
-        inspecProfilePath: '$(workingDir)/test'
-        inspecArguments: 'aws_HCL_test --reporter junit:junit/test-results.xml html:www/index.html -t aws:// --chef-license accept'
-      
-
-    - task: PublishTestResults@2
-      displayName: 'Publish test results for terraform'
-      inputs:
-        testResultsFiles: 'aws_HCL_test/**/test-*.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-      condition: succeededOrFailed()
-
-    - task: PublishTestResults@2
-      displayName: Publish inspec test results2
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/*.xml'
-        searchFolder: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL/test'
-        mergeTestResults: true
-        testRunTitle: 'avtask'
+        terraformVersion: 0.12.20
