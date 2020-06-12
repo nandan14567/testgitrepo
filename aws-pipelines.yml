@@ -22,8 +22,9 @@ stages:
     - task: vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
+        inspecChannel: 'stable'
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
-        downloadsFolderLinux: '/home/temp'
+        downloadsFolderLinux: '/home/temp'        
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
@@ -47,10 +48,7 @@ stages:
         inspec check aws_HCL_test --chef-license accept
       displayName: 'InSpec Linter'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Pipeline Artifact'
-      inputs:
-        artifact: webfront-build
+
 
   - job: Package
     dependsOn: Test
@@ -59,8 +57,10 @@ stages:
       displayName: 'Use Ruby >= 2.4'
       inputs:
         versionSpec: '>= 2.4'
-
-
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        artifact: webfront-build
 
 - stage: DEPLOY
   dependsOn: BUILD
