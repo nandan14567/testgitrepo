@@ -117,7 +117,12 @@ stages:
         testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
-
+    - task: PublishTestResults@2
+      displayName: 'Publish test results'
+      inputs:
+        testResultsFiles: 'report.html'
+        searchFolder: 'terraform-webfront-aws-HCL/test'
+      condition: succeededOrFailed()
     - task: PublishBuildArtifacts@1
       displayName: Publish inspec HTML report
       condition: succeededOrFailed()
