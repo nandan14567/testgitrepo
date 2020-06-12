@@ -139,6 +139,7 @@ stages:
       inputs:
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
+        reportDirectory: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls'
       condition: succeededOrFailed()
 
     - task: CopyFiles@2
