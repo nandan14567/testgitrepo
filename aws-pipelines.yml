@@ -16,7 +16,7 @@ stages:
     - script: |
         terraform validate 
       displayName: terraform validate 
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-webfront-aws-HCL'
+      workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
     - task: vsts-chef-task-install-inspec@1
@@ -48,8 +48,6 @@ stages:
         inspec check aws_HCL_test --chef-license accept
       displayName: 'InSpec Linter'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-
-
 
   - job: Package
     steps:
@@ -100,7 +98,25 @@ stages:
         terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZ.ClientId) -var client_secret=$(AZ.ClientSecret) -var access_key=$(NPD.AWS.AccessKey) -var secret_key=$(NPD.AWS.SecretAccessKey)
       displayName: terraform plan 
       workingDirectory: 'terraform-webfront-aws-HCL'
-
+    - task: AzurePowerShell@4
+      displayName: 'State file from Backend'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        ScriptType: InlineScript
+        Inline: |
+          $StorageAccountName = "samstorageacc"
+          $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
+          $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
+          $BlobName = "AWSILB-Recipe.tfstate"
+          $localTargetDirectory = "test/aws_HCL_test/files"
+          mkdir $localTargetDirectory
+          $ContainerName  = "aws-load-balancer-with-provisioner"
+          
+          Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
+                  -Destination $localTargetDirectory -Context $ctx
+        preferredAzurePowerShellVersion: 3.1.0
+        workingDirectory: 'terraform-webfront-aws-HCL'
+        
     - script: |
         cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
       displayName: 'Print State file'
