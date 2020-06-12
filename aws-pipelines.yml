@@ -129,14 +129,6 @@ stages:
       inputs:
         pathtoPublish: 'terraform-webfront-aws-HCL/test/index.htm'
         artifactName: 'report' 
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'terraform-webfront-aws-HCL/test/'
-        Contents: 'index.htm'
-        TargetFolder: '/home/vsts/work/_temp/cchtml'
-        OverWrite: true
-  
-
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
