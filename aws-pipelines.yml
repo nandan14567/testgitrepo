@@ -111,8 +111,6 @@ stages:
         inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-
-
     - task: PublishTestResults@2
       displayName: 'Publish test results for Python'
       inputs:
@@ -126,15 +124,12 @@ stages:
       inputs:
         pathtoPublish: 'terraform-webfront-aws-HCL/test'
         artifactName: 'report' 
-
-
     - task: PublishCodeCoverageResults@1
-      displayName: 'Publish code coverage from $(System.DefaultWorkingDirectory)/coverage.xml'
       inputs:
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
+        reportDirectory: 'terraform-webfront-aws-HCL/test/report.html'
         failIfCoverageEmpty: true
-      condition: succeededOrFailed() 
 
 
 
