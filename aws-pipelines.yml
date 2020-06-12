@@ -65,7 +65,8 @@ stages:
   dependsOn: BUILD
   jobs:
   - job: NPD_DEPLOYMENT  
-
+    variables:
+      AWS_DEFAULT_REGION: 'us-east-1'
       
     steps:
     - task: DownloadPipelineArtifact@2
