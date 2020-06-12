@@ -65,10 +65,7 @@ stages:
   dependsOn: BUILD
   jobs:
   - job: NPD_DEPLOYMENT  
-    variables:
-      AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
-      AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
-      AWS_DEFAULT_REGION: 'us-east-1'
+
       
     steps:
     - task: DownloadPipelineArtifact@2
@@ -121,6 +118,17 @@ stages:
       inputs:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
+    - task: AWSShellScript@1
+      displayName: Initializing Temporary Creds for SBX
+      inputs:
+        regionName: 'us-east-1'
+        scriptType: 'inline'
+        inlineScript: |
+          export AWS_ACCESS_KEY_ID=$(NPD.AWS.AccessKey)
+          export AWS_SECRET_ACCESS_KEY=$(NPD.AWS.SecretAccessKey)
+        disableAutoCwd: true
+        workingDirectory: 'terraform-webfront-aws-HCL/test'
+        failOnStandardError: true
     - script: |
         inspec exec aws_HCL_test -t aws:// --chef-license accept
       displayName: 'Execute InSpec'
