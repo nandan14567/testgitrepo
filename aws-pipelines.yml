@@ -106,12 +106,13 @@ stages:
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
           $BlobName = "AWSILB-Recipe.tfstate"
           $localTargetDirectory = "test/aws_HCL_test/files"
-          mkdir test2
+          mkdir abc
           $ContainerName  = "aws-load-balancer-with-provisioner"          
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
                   -Destination $localTargetDirectory -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: 'terraform-webfront-aws-HCL'
+
         
     - script: |
         cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
