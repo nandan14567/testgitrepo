@@ -120,11 +120,6 @@ stages:
         testResultsFiles: 'terraform-webfront-aws-HCL/test/testresults.xml'
         mergeTestResults: true
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish inspec HTML report
-      condition: succeededOrFailed()
-      inputs:
-        pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
-        artifactName: 'report'
+
 
 
