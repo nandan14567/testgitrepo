@@ -96,11 +96,6 @@ stages:
       displayName: terraform validate 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
-    - script: |
-        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform plan 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
       inputs:
