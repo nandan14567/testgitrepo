@@ -138,14 +138,7 @@ stages:
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
-        reportDirectory: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls'
+        summaryFileLocation: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls'
+        reportDirectory: 'terraform-webfront-aws-HCL/test/'
       condition: succeededOrFailed()
-
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'terraform-webfront-aws-HCL/test/'
-        Contents: 'index.htm'
-        TargetFolder: '/home/vsts/work/_temp/cchtml'
-        OverWrite: true
 
