@@ -105,11 +105,11 @@ stages:
           $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
           $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
           $BlobName = "AWSILB-Recipe.tfstate"
-          $localTargetDirectory = "test/aws_HCL_test/files"
+          $localTargetDirectory = "test/aws_HCL_test/file"
           mkdir $localTargetDirectory
           $ContainerName  = "aws-load-balancer-with-provisioner"          
           Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
-                  -Destination $localTargetDirectory -Context $ctx
+                  -Destination "test/aws_HCL_test/files" -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: 'terraform-webfront-aws-HCL'
 
