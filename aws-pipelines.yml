@@ -74,10 +74,10 @@ stages:
   dependsOn: BUILD
   jobs:
   - job: NPD_DEPLOYMENT 
-  variables:
-    AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
-    AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
-    AWS_DEFAULT_REGION: 'us-east-1'      
+    variables:
+      AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
+      AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
+      AWS_DEFAULT_REGION: 'us-east-1'      
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
