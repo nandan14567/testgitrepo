@@ -48,10 +48,10 @@ stages:
         inspec check aws_HCL_test --chef-license accept
       displayName: 'InSpec Linter'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-    - script: |
-        inspec exec aws_HCL_test -t aws:// --chef-license accept
-      displayName: 'Execute InSpec'
-      workingDirectory: 'terraform-webfront-aws-HCL/test'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+      inputs:
+        artifact: webfront-build
 
   - job: Package
     dependsOn: Test
@@ -61,10 +61,7 @@ stages:
       inputs:
         versionSpec: '>= 2.4'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Pipeline Artifact'
-      inputs:
-        artifact: webfront-build
+
 
 - stage: DEPLOY
   dependsOn: BUILD
