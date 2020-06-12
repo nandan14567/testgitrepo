@@ -16,17 +16,6 @@ stages:
   jobs:
   - job: Test
     steps:
-    - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-
-    - script: |
-        sudo chmod +x -R terraform-provider-restapi
-        terraform validate 
-      displayName: terraform validate 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-
     - task: vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
@@ -92,28 +81,6 @@ stages:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
 
-    - task: DownloadSecureFile@1
-      name: terraformSecureFile
-      inputs:
-        secureFile: 'awslb_yamltest.tfvars.json'
-        
-    - script: |
-        sudo chmod +x -R terraform-provider-restapi
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-
-    - script: |
-        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform plan 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-      enabled: false
-
-    - script: |
-        terraform apply -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform apply 
-      workingDirectory: 'terraform-webfront-aws-HCL'
-      enabled: false
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
@@ -141,12 +108,23 @@ stages:
     - script: |
         export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
         export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-        inspec exec aws_HCL_test -t aws:// --chef-license accept
+        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
-    - script: |
-        terraform destroy -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform destroy 
-      workingDirectory: 'terraform-webfront-aws-HCL'
+
+    - task: PublishTestResults@2
+      displayName: Publish inspec test results
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: 'terraform-webfront-aws-HCL/test/testresults.xml'
+        mergeTestResults: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish inspec HTML report
+      condition: succeededOrFailed()
+      inputs:
+        pathtoPublish: 'report.html'
+        artifactName: 'report'
+
 
