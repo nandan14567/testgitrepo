@@ -63,12 +63,13 @@ stages:
 
 - stage: DEPLOY
   dependsOn: BUILD
+  variables:
+    AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
+    AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
+    AWS_DEFAULT_REGION: 'us-east-1'
   jobs:
   - job: NPD_DEPLOYMENT  
-    variables:
-      AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
-      AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
-      AWS_DEFAULT_REGION: 'us-east-1'
+
       
     steps:
     - task: DownloadPipelineArtifact@2
@@ -122,18 +123,6 @@ stages:
       inputs:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
-    - script: echo $(AWS_ACCESS_KEY_ID)
-      name: echo_accesskey
-    - script: echo $(AWS_SECRET_ACCESS_KEY)
-      name: echo_secret
-    - script: echo $(AWS_DEFAULT_REGION)
-      name: echo_region
-    - script: |
-        cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
-        export AWS_ACCESS_KEY_ID=$(NPD.AWS.AccessKey)
-        export AWS_SECRET_ACCESS_KEY=$(NPD.AWS.SecretAccessKey)
-      displayName: 'Print State file'
-      workingDirectory: 'terraform-webfront-aws-HCL/test'
 
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
