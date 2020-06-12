@@ -67,6 +67,10 @@ stages:
       AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
       AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
       AWS_DEFAULT_REGION: 'us-east-1' 
+      AZURE_SUBSCRIPTION_ID: $(AZ.SubscriptionId)
+      AZURE_TENANT: $(AZ.TenantId)
+      AZURE_CLIENT_ID: $(AZ.ClientId)
+      AZURE_SECRET: $(AZ.ClientSecret)
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
