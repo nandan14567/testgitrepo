@@ -82,9 +82,9 @@ stages:
       name: terraformSecureFile
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
-
+ 
     - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZ.SubscriptionId) -backend-config=tenant_id=$(AZ.TenantId) -backend-config=client_id=$(AZ.ClientId) -backend-config=client_secret=$(AZ.ClientSecret)
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
       displayName: terraform init 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
@@ -95,9 +95,10 @@ stages:
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
-        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZ.ClientId) -var client_secret=$(AZ.ClientSecret) -var access_key=$(NPD.AWS.AccessKey) -var secret_key=$(NPD.AWS.SecretAccessKey)
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
       displayName: terraform plan 
       workingDirectory: 'terraform-webfront-aws-HCL'
+      
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
       inputs:
