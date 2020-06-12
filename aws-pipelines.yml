@@ -122,7 +122,12 @@ stages:
       inputs:
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
         downloadsFolderLinux: '/home/temp'
-
+    - script: echo $(AWS_ACCESS_KEY_ID)
+      name: echo_accesskey
+    - script: echo $(AWS_SECRET_ACCESS_KEY)
+      name: echo_secret
+    - script: echo $(AWS_DEFAULT_REGION)
+      name: echo_region
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
       inputs:
