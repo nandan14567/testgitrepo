@@ -128,6 +128,13 @@ stages:
       name: echo_secret
     - script: echo $(AWS_DEFAULT_REGION)
       name: echo_region
+    - script: |
+        cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
+        export AWS_ACCESS_KEY_ID=$(NPD.AWS.AccessKey)
+        export AWS_SECRET_ACCESS_KEY=$(NPD.AWS.SecretAccessKey)
+      displayName: 'Print State file'
+      workingDirectory: 'terraform-webfront-aws-HCL/test'
+
     - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
       displayName: 'Execute InSpec'
       inputs:
