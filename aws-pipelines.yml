@@ -85,7 +85,7 @@ stages:
         secureFile: 'awslb_yamltest.tfvars.json'
 
     - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZ.SubscriptionId) -backend-config=tenant_id=$(AZ.TenantId) -backend-config=client_id=$(AZ.ClientId) -backend-config=client_secret=$(AZ.ClientSecret)
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 
       displayName: terraform init 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
