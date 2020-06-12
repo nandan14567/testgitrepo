@@ -117,7 +117,10 @@ stages:
         cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
       displayName: 'Print State file'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-
+    - task: vsts-chef-task-install-inspec@1
+      inputs:
+        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
+        downloadsFolderLinux: '/home/temp'
     - script: |
         inspec exec aws_HCL_test -t aws:// --chef-license accept
       displayName: 'Execute InSpec'
