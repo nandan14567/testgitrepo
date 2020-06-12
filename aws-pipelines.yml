@@ -14,11 +14,15 @@ stages:
   - job: Test
     steps:
     - script: |
-        terraform validate 
-      displayName: terraform validate 
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
+      displayName: terraform init 
       workingDirectory: 'terraform-webfront-aws-HCL'
-      enabled: false
 
+    - script: |
+        terraform validate 
+      displayName: Terraform Linter
+      workingDirectory: 'terraform-webfront-aws-HCL'
+ 
     - task: vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
@@ -64,13 +68,9 @@ stages:
 - stage: DEPLOY
   dependsOn: BUILD
   variables:
-    AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
-    AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
     AWS_DEFAULT_REGION: 'us-east-1'
   jobs:
-  - job: NPD_DEPLOYMENT  
-
-      
+  - job: NPD_DEPLOYMENT       
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
@@ -129,8 +129,4 @@ stages:
         inspec exec aws_HCL_test -t aws:// --chef-license accept
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-    - task: chef-software.vsts-chef-tasks.vsts-chef-tasks-exec-inspec.vsts-chef-task-exec-inspec@1
-      displayName: 'Execute InSpec'
-      inputs:
-        inspecProfilePath: 'terraform-webfront-aws-HCL/test'
-        inspecArguments: 'aws_HCL_test -t aws:// --chef-license accept'
+
