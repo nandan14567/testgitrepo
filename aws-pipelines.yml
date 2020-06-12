@@ -112,7 +112,7 @@ stages:
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
     - task: PublishTestResults@2
-      displayName: 'Publish test results for Python'
+      displayName: 'Publish test results'
       inputs:
         testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'
