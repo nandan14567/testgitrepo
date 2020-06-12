@@ -92,7 +92,7 @@ stages:
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
-        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZ.ClientId) -var client_secret=$(AZ.ClientSecret) -var access_key=$(AZ.AccessKey) -var secret_key=$(AZ.SecretAccessKey)
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZ.ClientId) -var client_secret=$(AZ.ClientSecret) -var access_key=$(NPD.AWS.AccessKey) -var secret_key=$(NPD.AWS.SecretAccessKey)
       displayName: terraform plan 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
