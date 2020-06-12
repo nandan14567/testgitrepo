@@ -133,8 +133,13 @@ stages:
       inputs:
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: 'terraform-webfront-aws-HCL/test/index.htm'
-        reportDirectory:  '$(System.DefaultWorkingDirectory)/cchtml'
+        reportDirectory:  '/home/vsts/work/_temp/cchtml'
       condition: succeededOrFailed()
 
-
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: 'terraform-webfront-aws-HCL/test/'
+        Contents: 'index.htm'
+        TargetFolder: '/home/vsts/work/_temp/cchtml'
+        OverWrite: true
 
