@@ -120,6 +120,12 @@ stages:
         searchFolder: 'terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish inspec HTML report
+      condition: succeededOrFailed()
+      inputs:
+        pathtoPublish: 'terraform-webfront-aws-HCL/test'
+        artifactName: 'report' 
 
 
     - task: PublishCodeCoverageResults@1
