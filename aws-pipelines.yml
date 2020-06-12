@@ -135,10 +135,11 @@ stages:
         Contents: 'index.htm'
         TargetFolder: '/home/vsts/work/_temp/cchtml'
         OverWrite: true
+  
+
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls/aws_template_test.rb'
-        reportDirectory: 'terraform-webfront-aws-HCL/test/'
+        summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
+        reportDirectory:  '$(System.DefaultWorkingDirectory)/cchtml'
       condition: succeededOrFailed()
-
