@@ -114,16 +114,9 @@ stages:
 
 
     - task: PublishTestResults@2
-      displayName: Publish inspec test results
-      condition: succeededOrFailed()
-      inputs:
-        testResultsFiles: 'terraform-webfront-aws-HCL/test/testresults.xml'
-        mergeTestResults: true
-
-    - task: PublishTestResults@2
       displayName: 'Publish test results for Python'
       inputs:
-        testResultsFiles: '**/test-*.xml'
+        testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
 
