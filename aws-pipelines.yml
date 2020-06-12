@@ -24,7 +24,8 @@ stages:
       inputs:
         inspecChannel: 'stable'
         chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
-        downloadsFolderLinux: '/home/temp'        
+        downloadsFolderLinux: '/home/temp' 
+        addToPath: true       
 
     - task: AzurePowerShell@4
       displayName: 'State file from Backend'
