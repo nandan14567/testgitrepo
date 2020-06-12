@@ -52,7 +52,6 @@ stages:
 
 
   - job: Package
-    dependsOn: Test
     steps:
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
@@ -71,8 +70,8 @@ stages:
     variables:
       AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
       AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
-      AWS_DEFAULT_REGION: 'us-east-1' 
-
+      AWS_DEFAULT_REGION: 'us-east-1'
+      
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
@@ -87,7 +86,7 @@ stages:
         secureFile: 'awslb_yamltest.tfvars.json'
 
     - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZ.SubscriptionId) -backend-config=tenant_id=$(AZ.TenantId) -backend-config=client_id=$(AZ.ClientId) -backend-config=client_secret=$(AZ.ClientSecret)
       displayName: terraform init 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
