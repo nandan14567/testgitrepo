@@ -122,12 +122,12 @@ stages:
       displayName: Publish inspec HTML report
       condition: succeededOrFailed()
       inputs:
-        pathtoPublish: 'terraform-webfront-aws-HCL/test'
+        pathtoPublish: 'report.html'
         artifactName: 'report' 
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
+        summaryFileLocation: 'terraform-webfront-aws-HCL/test'
         reportDirectory: 'terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
     - task: PublishCodeCoverageResults@1
