@@ -52,6 +52,7 @@ stages:
 
 
   - job: Package
+    dependsOn: Test
     steps:
     - task: UseRubyVersion@0
       displayName: 'Use Ruby >= 2.4'
