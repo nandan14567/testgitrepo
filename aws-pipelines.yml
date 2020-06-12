@@ -138,7 +138,7 @@ stages:
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls'
+        summaryFileLocation: 'terraform-webfront-aws-HCL/test/aws_HCL_test/controls/aws_template_test.rb'
         reportDirectory: 'terraform-webfront-aws-HCL/test/'
       condition: succeededOrFailed()
 
