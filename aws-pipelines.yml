@@ -132,18 +132,9 @@ stages:
     - task: PublishCodeCoverageResults@1
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test'
+        summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
         reportDirectory: 'terraform-webfront-aws-HCL/test'
       condition: succeededOrFailed()
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Publish code coverage from $(System.DefaultWorkingDirectory)/coverage.xml'
-      inputs:
-        codeCoverageTool: Cobertura
-        summaryFileLocation: 'terraform-webfront-aws-HCL/test/testresults.xml'
-        reportDirectory: '$(System.DefaultWorkingDirectory)/htmlcov'
-        failIfCoverageEmpty: true
-      condition: succeededOrFailed()
-
 
 
 
