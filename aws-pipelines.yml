@@ -1,13 +1,16 @@
 ---
 trigger:
 - features/*
+
 pool:
   vmImage: 'ubuntu-latest'
+
 variables:
   AZURE_SUBSCRIPTION_ID: $(AZ.SubscriptionId)
   AZURE_TENANT: $(AZ.TenantId)
   AZURE_CLIENT_ID: $(AZ.ClientId)
   AZURE_SECRET: $(AZ.ClientSecret)
+
 stages:
 - stage: BUILD
   jobs:
@@ -19,10 +22,11 @@ stages:
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
+        sudo chmod +x -R terraform-provider-restapi
         terraform validate 
-      displayName: Terraform Linter
+      displayName: terraform validate 
       workingDirectory: 'terraform-webfront-aws-HCL'
- 
+
     - task: vsts-chef-task-install-inspec@1
       displayName: 'Install InSpec'
       inputs:
@@ -60,6 +64,7 @@ stages:
       displayName: 'Use Ruby >= 2.4'
       inputs:
         versionSpec: '>= 2.4'
+
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
@@ -67,10 +72,12 @@ stages:
 
 - stage: DEPLOY
   dependsOn: BUILD
-  variables:
-    AWS_DEFAULT_REGION: 'us-east-1'
   jobs:
-  - job: NPD_DEPLOYMENT       
+  - job: NPD_DEPLOYMENT 
+  variables:
+    AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
+    AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
+    AWS_DEFAULT_REGION: 'us-east-1'      
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: Download Artifact from current run
@@ -79,20 +86,20 @@ stages:
         artifactName: 'webfront-build'
         targetPath: '$(Pipeline.Workspace)' 
 
+    - task: vsts-chef-task-install-inspec@1
+      displayName: 'Install InSpec'
+      inputs:
+        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
+        downloadsFolderLinux: '/home/temp'
+
     - task: DownloadSecureFile@1
       name: terraformSecureFile
       inputs:
         secureFile: 'awslb_yamltest.tfvars.json'
- 
-    - script: |
-        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
-      workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
-        sudo chmod +x -R terraform-provider-restapi
-        terraform validate 
-      displayName: terraform validate 
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
+      displayName: terraform plan 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - task: AzurePowerShell@4
@@ -112,20 +119,15 @@ stages:
                   -Destination $localTargetDirectory -Context $ctx
         preferredAzurePowerShellVersion: 3.1.0
         workingDirectory: 'terraform-webfront-aws-HCL'
-
         
     - script: |
         cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
       displayName: 'Print State file'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
-    - task: vsts-chef-task-install-inspec@1
-      displayName: 'Install InSpec'
-      inputs:
-        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
-        downloadsFolderLinux: '/home/temp'
+
     - script: |
-        export AWS_ACCESS_KEY_ID=$(NPD.AWS.AccessKey)
-        export AWS_SECRET_ACCESS_KEY=$(NPD.AWS.SecretAccessKey)
+        export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+        export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
         inspec exec aws_HCL_test -t aws:// --chef-license accept
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
