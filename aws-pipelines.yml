@@ -168,7 +168,7 @@ stages:
 
   - job: NPD_DEPLOYMENT
     dependsOn: SBX_DEPLOYMENT
-    condition: eq(1,1)
+    condition: eq(1,2)
     variables:
       AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
       AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
