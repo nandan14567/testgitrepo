@@ -141,7 +141,7 @@ stages:
     - script: |
         export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
         export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
+        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:sbx_report.html
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
@@ -236,7 +236,7 @@ stages:
     - script: |
         export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
         export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
+        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:npd_report.html
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
