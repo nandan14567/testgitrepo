@@ -72,7 +72,7 @@ stages:
 - stage: DEPLOY
   dependsOn: BUILD
   jobs:
-  - job: NPD_DEPLOYMENT 
+  - job: SBX_DEPLOYMENT 
     variables:
       AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
       AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
@@ -149,15 +149,108 @@ stages:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: 'testresults.xml'
-        searchFolder: 'terraform-webfront-aws-HCL/test'
-       
+        searchFolder: 'terraform-webfront-aws-HCL/test'       
 
     - task: PublishBuildArtifacts@1
       displayName: Publish InSpec HTML Report
       condition: succeededOrFailed()
       inputs:
         pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
-        artifactName: 'report' 
+        artifactName: 'report-SBX' 
+
+    - script: |
+        terraform destroy -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
+      displayName: terraform destroy 
+      workingDirectory: 'terraform-webfront-aws-HCL'
+      enabled: false
+
+
+  - job: NPD_DEPLOYMENT
+    dependsOn: SBX_DEPLOYMENT
+    variables:
+      AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
+      AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
+      AWS_DEFAULT_REGION: 'us-east-1'      
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Artifact from current run
+      inputs:
+        buildType: 'current'
+        artifactName: 'webfront-build'
+        targetPath: '$(Pipeline.Workspace)' 
+
+    - task: vsts-chef-task-install-inspec@1
+      displayName: 'Install InSpec'
+      inputs:
+        chefInstallScriptDownloadURLLinux: 'https://omnitruck.chef.io/install.sh'
+        downloadsFolderLinux: '/home/temp'
+
+    - task: DownloadSecureFile@1
+      name: terraformSecureFile
+      inputs:
+        secureFile: 'awslb_yamltest.tfvars.json'
+        
+    - script: |
+        sudo chmod +x -R terraform-provider-restapi
+        terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
+      displayName: terraform init 
+      workingDirectory: 'terraform-webfront-aws-HCL'
+
+    - script: |
+        terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
+      displayName: terraform plan 
+      workingDirectory: 'terraform-webfront-aws-HCL'
+      enabled: false
+
+    - script: |
+        terraform apply -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
+      displayName: terraform apply 
+      workingDirectory: 'terraform-webfront-aws-HCL'
+      enabled: false
+
+    - task: AzurePowerShell@4
+      displayName: 'State file from Backend'
+      inputs:
+        azureSubscription: 'Recipe_Azure_Service_Conn'
+        ScriptType: InlineScript
+        Inline: |
+          $StorageAccountName = "samstorageacc"
+          $sasToken = "sp=r&st=2020-05-12T05:41:03Z&se=2020-08-12T13:41:03Z&spr=https&sv=2019-10-10&sr=b&sig=ZFMRc6ctrrY8oMIYmcQV%2ByFa5fnzfbTZzPTWLP2wYTI%3D"
+          $Ctx = New-AzStorageContext -StorageAccountName $StorageAccountName ` -SasToken $sasToken
+          $BlobName = "AWSILB-Recipe.tfstate"
+          $localTargetDirectory = "test/aws_HCL_test/files"
+          mkdir $localTargetDirectory
+          $ContainerName  = "aws-load-balancer-with-provisioner"          
+          Get-AzStorageBlobContent -Blob $BlobName -Container $ContainerName `
+                  -Destination $localTargetDirectory -Context $ctx
+        preferredAzurePowerShellVersion: 3.1.0
+        workingDirectory: 'terraform-webfront-aws-HCL'
+        
+    - script: |
+        cat "aws_HCL_test/files/AWSILB-Recipe.tfstate"
+      displayName: 'Print State file'
+      workingDirectory: 'terraform-webfront-aws-HCL/test'
+
+    - script: |
+        export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+        export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
+      displayName: 'Execute InSpec'
+      workingDirectory: 'terraform-webfront-aws-HCL/test'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish test results xml'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: 'testresults.xml'
+        searchFolder: 'terraform-webfront-aws-HCL/test'       
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish InSpec HTML Report
+      condition: succeededOrFailed()
+      inputs:
+        pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
+        artifactName: 'report-NPD' 
 
     - script: |
         terraform destroy -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
