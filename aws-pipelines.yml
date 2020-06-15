@@ -1,6 +1,6 @@
 ---
 trigger:
-- features/*
+- master
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -18,13 +18,13 @@ stages:
     steps:
     - script: |
         terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
+      displayName: 'terraform init'
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
         sudo chmod +x -R terraform-provider-restapi
         terraform validate 
-      displayName: terraform validate 
+      displayName: 'Terraform Linter' 
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - task: vsts-chef-task-install-inspec@1
@@ -67,7 +67,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
       inputs:
-        artifact: webfront-build
+        artifact: aws-webfront
 
 - stage: DEPLOY
   dependsOn: BUILD
@@ -79,10 +79,10 @@ stages:
       AWS_DEFAULT_REGION: 'us-east-1'      
     steps:
     - task: DownloadPipelineArtifact@2
-      displayName: Download Artifact from current run
+      displayName: 'Download Artifact from current run'
       inputs:
         buildType: 'current'
-        artifactName: 'webfront-build'
+        artifactName: 'aws-webfront'
         targetPath: '$(Pipeline.Workspace)' 
 
     - task: vsts-chef-task-install-inspec@1
@@ -99,18 +99,18 @@ stages:
     - script: |
         sudo chmod +x -R terraform-provider-restapi
         terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
+      displayName: 'terraform init'
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
         terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform plan 
+      displayName: 'terraform plan' 
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
     - script: |
         terraform apply -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform apply 
+      displayName: 'terraform apply' 
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
@@ -145,22 +145,22 @@ stages:
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
     - task: PublishTestResults@2
-      displayName: 'Publish test results xml'
+      displayName: 'Publish Test Results-XML'
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'       
 
     - task: PublishBuildArtifacts@1
-      displayName: Publish InSpec HTML Report
+      displayName: 'Publish Test Results-HTML'
       condition: succeededOrFailed()
       inputs:
         pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
-        artifactName: 'report-SBX' 
+        artifactName: 'TestResults-SBX' 
 
     - script: |
         terraform destroy -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform destroy 
+      displayName: 'terraform destroy'
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
@@ -173,10 +173,10 @@ stages:
       AWS_DEFAULT_REGION: 'us-east-1'      
     steps:
     - task: DownloadPipelineArtifact@2
-      displayName: Download Artifact from current run
+      displayName: 'Download Artifact from current run'
       inputs:
         buildType: 'current'
-        artifactName: 'webfront-build'
+        artifactName: 'aws-webfront'
         targetPath: '$(Pipeline.Workspace)' 
 
     - task: vsts-chef-task-install-inspec@1
@@ -193,18 +193,18 @@ stages:
     - script: |
         sudo chmod +x -R terraform-provider-restapi
         terraform init -backend-config=storage_account_name=samstorageacc -backend-config=container_name=aws-load-balancer-with-provisioner -backend-config=key=AWSILB-Recipe.tfstate -backend-config=resource_group_name=AZRG-USE-ITS-RCPNPD-NPD-001 -backend-config=subscription_id=$(AZURE_SUBSCRIPTION_ID) -backend-config=tenant_id=$(AZURE_TENANT) -backend-config=client_id=$(AZURE_CLIENT_ID) -backend-config=client_secret=$(AZURE_SECRET)
-      displayName: terraform init 
+      displayName: 'terraform init'
       workingDirectory: 'terraform-webfront-aws-HCL'
 
     - script: |
         terraform plan -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform plan 
+      displayName: 'terraform plan'
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
     - script: |
         terraform apply -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform apply 
+      displayName: 'terraform apply' 
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
 
@@ -239,21 +239,21 @@ stages:
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
     - task: PublishTestResults@2
-      displayName: 'Publish test results xml'
+      displayName: 'Publish Test Results-XML'
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'       
 
     - task: PublishBuildArtifacts@1
-      displayName: Publish InSpec HTML Report
+      displayName: 'Publish Test Results-HTML'
       condition: succeededOrFailed()
       inputs:
         pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
-        artifactName: 'report-NPD' 
+        artifactName: 'TestResults-NPD' 
 
     - script: |
         terraform destroy -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
-      displayName: terraform destroy 
+      displayName: 'terraform destroy' 
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
