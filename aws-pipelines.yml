@@ -56,7 +56,6 @@ stages:
       displayName: 'InSpec Linter'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
 
-
   - job: Package
     dependsOn: Test
     steps:
@@ -110,7 +109,7 @@ stages:
       enabled: false
 
     - script: |
-        terraform apply -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
+        terraform apply -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
       displayName: terraform apply 
       workingDirectory: 'terraform-webfront-aws-HCL'
       enabled: false
@@ -141,23 +140,26 @@ stages:
     - script: |
         export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
         export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:index.htm
+        inspec exec aws_HCL_test -t aws:// --chef-license accept --reporter cli junit:testresults.xml html:report.html
       displayName: 'Execute InSpec'
       workingDirectory: 'terraform-webfront-aws-HCL/test'
+
     - task: PublishTestResults@2
-      displayName: '1Publish test results xml'
+      displayName: 'Publish test results xml'
       inputs:
         testResultsFiles: 'testresults.xml'
         searchFolder: 'terraform-webfront-aws-HCL/test'
+      condition: succeededOrFailed() 
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish InSpec HTML Report
       condition: succeededOrFailed()
+      inputs:
+        pathtoPublish: 'terraform-webfront-aws-HCL/test/report.html'
+        artifactName: 'report' 
+
     - script: |
         terraform destroy -auto-approve -var-file='$(terraformSecureFile.secureFilePath)' -var client_id=$(AZURE_CLIENT_ID) -var client_secret=$(AZURE_SECRET) -var access_key=$(AWS_ACCESS_KEY_ID) -var secret_key=$(AWS_SECRET_ACCESS_KEY)
       displayName: terraform destroy 
       workingDirectory: 'terraform-webfront-aws-HCL'
-    - task: PublishTestResults@2
-      displayName: '2Publish test results xml'
-      inputs:
-        testResultsFiles: 'testresults.xml'
-        searchFolder: 'terraform-webfront-aws-HCL/test'
-      condition: succeededOrFailed()
-
+      enabled: false
