@@ -74,8 +74,8 @@ stages:
   jobs:
   - job: SBX_DEPLOYMENT 
     variables:
-      AWS_ACCESS_KEY_ID: $(NPD.AWS.AccessKey)
-      AWS_SECRET_ACCESS_KEY: $(NPD.AWS.SecretAccessKey)
+      AWS_ACCESS_KEY_ID: $(SBX.AWS.AccessKey)
+      AWS_SECRET_ACCESS_KEY: $(SBX.AWS.SecretAccessKey)
       AWS_DEFAULT_REGION: 'us-east-1'      
     steps:
     - task: DownloadPipelineArtifact@2
