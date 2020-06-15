@@ -73,7 +73,7 @@ stages:
   dependsOn: BUILD
   jobs:
   - job: SBX_DEPLOYMENT 
-    condition: eq(1,2)
+    condition: eq(1,1)
     variables:
       AWS_ACCESS_KEY_ID: $(SBX.AWS.AccessKey)
       AWS_SECRET_ACCESS_KEY: $(SBX.AWS.SecretAccessKey)
