@@ -85,7 +85,7 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		if resp.StatusCode != 200 {
+		if resp.StatusCode != 200 || resp.StatusCode != 201 || resp.StatusCode != 202 {
 			return fmt.Errorf("Response code: %d Response is: %s", resp.StatusCode,bytes)
 		}
 
@@ -115,39 +115,7 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 		var request_header_type string
 		request_header = fmt.Sprintf("%s",headers["Content-Type"])
 	    request_header_type = strings.ToLower(request_header)
-		if(request_header_type=="application/json"){
-			req, err := http.NewRequest(method, uri, strings.NewReader(requestbody))
-			if err != nil {
-				return fmt.Errorf("Error creating Request: %s", err)
-			}
-			for name, value := range headers {
-				req.Header.Set(name, value.(string))
-			}
-			resp, err := client.Do(req)
-			if err != nil {
-				return fmt.Errorf("Error making a Request: %s", err)
-			}
-			defer resp.Body.Close()
-			bytes, err := ioutil.ReadAll(resp.Body)
-			if resp.StatusCode != 200 {
-				return fmt.Errorf("Response Code: %d Response is: %s",resp.StatusCode,bytes)
-			}
-			contentType := resp.Header.Get("Content-Type")
-			if contentType == "" || isContentTypeAllowed(contentType) == false {
-					return fmt.Errorf("Content-Type is not a text type. Got: %s", contentType)
-			}
-			if err != nil {
-				return fmt.Errorf("Error while reading response body. %s", err)
-			}
-			responseHeaders := make(map[string]string)
-			for k, v := range resp.Header {
-				responseHeaders[k] = strings.Join(v, ", ")
-			}
-			d.Set("body", string(bytes))
-			if err = d.Set("response_headers", responseHeaders); err != nil {
-				return fmt.Errorf("Error Setting HTTP Response Headers: %s", err)
-			}
-		}else if(request_header_type=="application/x-www-form-urlencoded"){
+		if(request_header_type=="application/x-www-form-urlencoded"){
 			var mapstring map[string]interface{}
 			json.Unmarshal([]byte(requestbody), &mapstring)
 			v := url.Values{}
@@ -168,7 +136,39 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			defer resp.Body.Close()
 			bytes, err := ioutil.ReadAll(resp.Body)
-			if resp.StatusCode != 200 {
+			if(!(resp.StatusCode >= 200 && resp.StatusCode <= 202)) {
+				return fmt.Errorf("Response Code: %d Response is: %s",resp.StatusCode,bytes)
+			}
+			contentType := resp.Header.Get("Content-Type")
+			if contentType == "" || isContentTypeAllowed(contentType) == false {
+					return fmt.Errorf("Content-Type is not a text type. Got: %s", contentType)
+			}
+			if err != nil {
+				return fmt.Errorf("Error while reading response body. %s", err)
+			}
+			responseHeaders := make(map[string]string)
+			for k, v := range resp.Header {
+				responseHeaders[k] = strings.Join(v, ", ")
+			}
+			d.Set("body", string(bytes))
+			if err = d.Set("response_headers", responseHeaders); err != nil {
+				return fmt.Errorf("Error Setting HTTP Response Headers: %s", err)
+			}
+		}else if(!(request_header_type == "" || isContentTypeAllowed(request_header_type) == false)){
+			req, err := http.NewRequest(method, uri, strings.NewReader(requestbody))
+			if err != nil {
+				return fmt.Errorf("Error creating Request: %s", err)
+			}
+			for name, value := range headers {
+				req.Header.Set(name, value.(string))
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				return fmt.Errorf("Error making a Request: %s", err)
+			}
+			defer resp.Body.Close()
+			bytes, err := ioutil.ReadAll(resp.Body)
+			if (!(resp.StatusCode >= 200 && resp.StatusCode <= 202)) {
 				return fmt.Errorf("Response Code: %d Response is: %s",resp.StatusCode,bytes)
 			}
 			contentType := resp.Header.Get("Content-Type")
@@ -187,7 +187,7 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Error Setting HTTP Response Headers: %s", err)
 			}
 		}else{
-			return fmt.Errorf("Unsupported Content-Type for 'request_headers'\nProvider only supports 'application/json' and 'application/x-www-form-urlencoded'")
+			return fmt.Errorf("Unsupported Content-Type for 'request_headers'")
 		}
 		d.SetId(time.Now().UTC().String())
 		return nil
