@@ -85,9 +85,12 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		if resp.StatusCode != 200 || resp.StatusCode != 201 || resp.StatusCode != 202 {
-			return fmt.Errorf("Response code: %d Response is: %s", resp.StatusCode,bytes)
-		}
+		if(!(resp.StatusCode >= 200 && resp.StatusCode <= 202)) {
+				return fmt.Errorf("Response code: %d Response is: %s", resp.StatusCode,bytes)
+			}
+		// if resp.StatusCode != 200 || resp.StatusCode != 201 || resp.StatusCode != 202 {
+		// 	return fmt.Errorf("Response code: %d Response is: %s", resp.StatusCode,bytes)
+		// }
 
 		contentType := resp.Header.Get("Content-Type")
 		if contentType == "" || isContentTypeAllowed(contentType) == false {
