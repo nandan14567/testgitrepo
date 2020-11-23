@@ -1,5 +1,5 @@
 ##########################################################
-## Send Email to DB TEam
+## Get Server Names
 ##########################################################
 data "restapi" "servernaming" {
   uri          = "https://onecloudapi.deloitte.com/servernaming/20190215/ServerNaming"
@@ -26,43 +26,52 @@ data "restapi" "tokenapi" {
   method       = "POST"
   request_body = <<-EOF
   {
-     "grant_type":"client_credentials",
-     "resource":"9f11e6db-715d-45a7-887e-01e00b9bc968",
-     "client_id":"8a600017-ce29-45fc-9921-0ed8521a4d82",
-     "client_secret":"D:D_b1dr]@0qXfrfr7AioWMaDO2ohluV"
+    
   }
   EOF
   request_headers = {
     Content-Type = "Application/x-www-form-Urlencoded"
   }
 }
-
-data"restapi""email"{
-uri          = "https://az-use-dmo-bot-aam-01.azure-api.net/notification/20190515/sendEmail"
-method       = "POST"
-request_body = <<EOF
- {
-    "subject":  "AWS-MSSQLinstancecreatedsuccessfully",
-    "bodyText":  "HiDatabaseTeam, MSSQLinstancecreatedsuccessfullyinAWS ",
-    "fromEmail":  "admin@onecloud.deloitte.com",
-    "toEmails":  [
-                     "arshads@cirruslabs.io"
-                 ]
-}
-EOF
-request_headers = {
-Content-Type  = "text/xml"
-Authorization = jsondecode(data.restapi.tokenapi.body).access_token
+data "restapi" "ip_validation" {
+  uri    = "https://automation2.deloitte.com/dev/network/f5-cloud/v1/validateIP?ip_address=192.168.2.250&cidr_block=192.168.0.0/16"
+  method = "GET"
+  request_headers = {
+    x-api-key     = "3555FS472D9IAalke4Ynt1P3JNzhD4661Yw4KWB5"
+    Content-Type  = "application/json"
+    Authorization = "Bearer ${jsondecode(data.restapi.tokenapi.body).access_token}"
   }
-}
-# output "token" {
-#   value = jsondecode(data.restapi.tokenapi.body).access_token
-# }
-
-output"Done"{
-value = data.restapi.email.body
 }
 
 output "servernaming" {
   value = jsondecode(data.restapi.servernaming.body).components[0].servers.*
 }
+output "ipvalidtn" {
+  value = data.restapi.ip_validation.body
+}
+
+# data"restapi""email"{
+# uri          = "https://az-use-dmo-bot-aam-01.azure-api.net/notification/20190515/sendEmail"
+# method       = "POST"
+# request_body = <<EOF
+#  {
+#     "subject":  "AWS-MSSQLinstancecreatedsuccessfully",
+#     "bodyText":  "HiDatabaseTeam, MSSQLinstancecreatedsuccessfullyinAWS ",
+#     "fromEmail":  "admin@onecloud.deloitte.com",
+#     "toEmails":  [
+#                      "arshads@cirruslabs.io"
+#                  ]
+# }
+# EOF
+# request_headers = {
+# Content-Type  = "text/xml"
+# Authorization = jsondecode(data.restapi.tokenapi.body).access_token
+#   }
+# }
+# output "token" {
+#   value = jsondecode(data.restapi.tokenapi.body).access_token
+# }
+
+# output"Done"{
+# value = data.restapi.email.body
+# }

@@ -78,6 +78,10 @@ func dataSourceRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error creating Request: %s", err)
 		}
+		// To Set Headers provided
+		for name, value := range headers {
+			req.Header.Set(name, value.(string))
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			return fmt.Errorf("Error making a Request: %s", err)
